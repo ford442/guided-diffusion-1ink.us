@@ -1,7 +1,9 @@
 """
 Various utilities for neural networks.
 """
-
+import numba
+from numba import jit
+from numba import njit
 import math
 
 import torch as th
@@ -18,7 +20,7 @@ class GroupNorm32(nn.GroupNorm):
     def forward(self, x):
         return super().forward(x.float()).type(x.dtype)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def conv_nd(dims, *args, **kwargs):
     """
     Create a 1D, 2D, or 3D convolution module.
@@ -31,14 +33,14 @@ def conv_nd(dims, *args, **kwargs):
         return nn.Conv3d(*args, **kwargs)
     raise ValueError(f"unsupported dimensions: {dims}")
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def linear(*args, **kwargs):
     """
     Create a linear module.
     """
     return nn.Linear(*args, **kwargs)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def avg_pool_nd(dims, *args, **kwargs):
     """
     Create a 1D, 2D, or 3D average pooling module.
@@ -51,7 +53,7 @@ def avg_pool_nd(dims, *args, **kwargs):
         return nn.AvgPool3d(*args, **kwargs)
     raise ValueError(f"unsupported dimensions: {dims}")
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def update_ema(target_params, source_params, rate=0.99):
     """
     Update target parameters to be closer to those of source parameters using
@@ -64,7 +66,7 @@ def update_ema(target_params, source_params, rate=0.99):
     for targ, src in zip(target_params, source_params):
         targ.detach().mul_(rate).add_(src, alpha=1 - rate)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def zero_module(module):
     """
     Zero out the parameters of a module and return it.
@@ -73,7 +75,7 @@ def zero_module(module):
         p.detach().zero_()
     return module
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def scale_module(module, scale):
     """
     Scale the parameters of a module and return it.
@@ -82,14 +84,14 @@ def scale_module(module, scale):
         p.detach().mul_(scale)
     return module
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def mean_flat(tensor):
     """
     Take the mean over all non-batch dimensions.
     """
     return tensor.mean(dim=list(range(1, len(tensor.shape))))
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def normalization(channels):
     """
     Make a standard normalization layer.
@@ -99,7 +101,7 @@ def normalization(channels):
     """
     return GroupNorm32(32, channels)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def timestep_embedding(timesteps, dim, max_period=10000):
     """
     Create sinusoidal timestep embeddings.
@@ -120,7 +122,7 @@ def timestep_embedding(timesteps, dim, max_period=10000):
         embedding = th.cat([embedding, th.zeros_like(embedding[:, :1])], dim=-1)
     return embedding
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def checkpoint(func, inputs, params, flag):
     """
     Evaluate a function without caching intermediate activations, allowing for
