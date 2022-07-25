@@ -3,12 +3,14 @@ Helpers for various likelihood-based losses. These are ported from the original
 Ho et al. diffusion models codebase:
 https://github.com/hojonathanho/diffusion/blob/1e0dceb3b3495bbe19116a5e1b3596cd0706c543/diffusion_tf/utils.py
 """
-
+import numba
+from numba import jit
+from numba import njit
 import numpy as np
 
 import torch as th
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def normal_kl(mean1, logvar1, mean2, logvar2):
     """
     Compute the KL divergence between two gaussians.
@@ -38,7 +40,7 @@ def normal_kl(mean1, logvar1, mean2, logvar2):
         + ((mean1 - mean2) ** 2) * th.exp(-logvar2)
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def approx_standard_normal_cdf(x):
     """
     A fast approximation of the cumulative distribution function of the
@@ -46,7 +48,7 @@ def approx_standard_normal_cdf(x):
     """
     return 0.5 * (1.0 + th.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * th.pow(x, 3))))
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def discretized_gaussian_log_likelihood(x, *, means, log_scales):
     """
     Compute the log-likelihood of a Gaussian distribution discretizing to a
