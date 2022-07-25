@@ -128,7 +128,6 @@ def create_model_and_diffusion(
     )
     return model, diffusion
 
-@jit(forceobj=True,fastmath=True,cache=True)
 def create_model(
     image_size,
     num_channels,
@@ -384,7 +383,6 @@ def sr_create_model(
         use_fp16=use_fp16,
     )
 
-@jit(forceobj=True,fastmath=True,cache=True)
 def create_gaussian_diffusion(
     *,
     steps=1000,
