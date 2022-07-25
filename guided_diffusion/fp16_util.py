@@ -1,7 +1,9 @@
 """
 Helpers to train with 16-bit precision.
 """
-
+import numba
+from numba import jit
+from numba import njit
 import numpy as np
 import torch as th
 import torch.nn as nn
@@ -11,7 +13,7 @@ from . import logger
 
 INITIAL_LOG_LOSS_SCALE = 20.0
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def convert_module_to_f16(l):
     """
     Convert primitive modules to float16.
@@ -21,7 +23,7 @@ def convert_module_to_f16(l):
         if l.bias is not None:
             l.bias.data = l.bias.data.half()
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def convert_module_to_f32(l):
     """
     Convert primitive modules to float32, undoing convert_module_to_f16().
@@ -31,7 +33,7 @@ def convert_module_to_f32(l):
         if l.bias is not None:
             l.bias.data = l.bias.data.float()
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def make_master_params(param_groups_and_shapes):
     """
     Copy model parameters into a (differently-shaped) list of full-precision
@@ -48,7 +50,7 @@ def make_master_params(param_groups_and_shapes):
         master_params.append(master_param)
     return master_params
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def model_grads_to_master_grads(param_groups_and_shapes, master_params):
     """
     Copy the gradients from the model parameters into the master parameters
@@ -61,7 +63,7 @@ def model_grads_to_master_grads(param_groups_and_shapes, master_params):
             [param_grad_or_zeros(param) for (_, param) in param_group]
         ).view(shape)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def master_params_to_model_params(param_groups_and_shapes, master_params):
     """
     Copy the master parameter data back into the model parameters.
@@ -74,11 +76,11 @@ def master_params_to_model_params(param_groups_and_shapes, master_params):
         ):
             param.detach().copy_(unflat_master_param)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def unflatten_master_params(param_group, master_param):
     return _unflatten_dense_tensors(master_param, [param for (_, param) in param_group])
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def get_param_groups_and_shapes(named_model_params):
     named_model_params = list(named_model_params)
     scalar_vector_named_params = (
@@ -91,7 +93,7 @@ def get_param_groups_and_shapes(named_model_params):
     )
     return [scalar_vector_named_params, matrix_named_params]
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def master_params_to_state_dict(
     model, param_groups_and_shapes, master_params, use_fp16
 ):
@@ -112,7 +114,7 @@ def master_params_to_state_dict(
             state_dict[name] = master_params[i]
     return state_dict
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def state_dict_to_master_params(model, state_dict, use_fp16):
     if use_fp16:
         named_model_params = [
@@ -124,12 +126,12 @@ def state_dict_to_master_params(model, state_dict, use_fp16):
         master_params = [state_dict[name] for name, _ in model.named_parameters()]
     return master_params
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def zero_master_grads(master_params):
     for param in master_params:
         param.grad = None
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def zero_grad(model_params):
     for param in model_params:
         # Taken from https://pytorch.org/docs/stable/_modules/torch/optim/optimizer.html#Optimizer.add_param_group
@@ -137,7 +139,7 @@ def zero_grad(model_params):
             param.grad.detach_()
             param.grad.zero_()
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def param_grad_or_zeros(param):
     if param.grad is not None:
         return param.grad.data.detach()
@@ -231,6 +233,6 @@ class MixedPrecisionTrainer:
     def state_dict_to_master_params(self, state_dict):
         return state_dict_to_master_params(self.model, state_dict, self.use_fp16)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def check_overflow(value):
     return (value == float("inf")) or (value == -float("inf")) or (value != value)
