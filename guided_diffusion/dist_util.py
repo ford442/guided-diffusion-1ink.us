@@ -1,7 +1,9 @@
 """
 Helpers for distributed training.
 """
-
+import numba
+from numba import jit
+from numba import njit
 import io
 import os
 import socket
@@ -17,7 +19,7 @@ GPUS_PER_NODE = 8
 
 SETUP_RETRY_COUNT = 3
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def setup_dist():
     """
     Setup a distributed process group.
@@ -41,7 +43,7 @@ def setup_dist():
     os.environ["MASTER_PORT"] = str(port)
     dist.init_process_group(backend=backend, init_method="env://")
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def dev():
     """
     Get the device to use for torch.distributed.
@@ -50,7 +52,7 @@ def dev():
         return th.device(f"cuda")
     return th.device("cpu")
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def load_state_dict(path, **kwargs):
     """
     Load a PyTorch file without redundant fetches across MPI ranks.
@@ -73,7 +75,7 @@ def load_state_dict(path, **kwargs):
 
     return th.load(io.BytesIO(data), **kwargs)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def sync_params(params):
     """
     Synchronize a sequence of Tensors across ranks from rank 0.
@@ -82,7 +84,7 @@ def sync_params(params):
         with th.no_grad():
             dist.broadcast(p, 0)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def _find_free_port():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
