@@ -73,7 +73,6 @@ def classifier_and_diffusion_defaults():
     res.update(diffusion_defaults())
     return res
 
-@jit(forceobj=True,fastmath=True,cache=True)
 def create_model_and_diffusion(
     image_size,
     class_cond,
