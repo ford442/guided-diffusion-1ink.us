@@ -1,9 +1,12 @@
+import numba
+from numba import jit
+from numba import njit
 import numpy as np
 import torch as th
 
 from .gaussian_diffusion import GaussianDiffusion
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def space_timesteps(num_timesteps, section_counts):
     """
     Create a list of timesteps to use from an original diffusion process,
