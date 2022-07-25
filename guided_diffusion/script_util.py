@@ -1,3 +1,6 @@
+import numba
+from numba import jit
+from numba import njit
 import argparse
 import inspect
 
@@ -7,7 +10,7 @@ from .unet import SuperResModel, UNetModel, EncoderUNetModel
 
 NUM_CLASSES = 1000
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def diffusion_defaults():
     """
     Defaults for image and classifier training.
@@ -23,7 +26,7 @@ def diffusion_defaults():
         rescale_learned_sigmas=False,
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def classifier_defaults():
     """
     Defaults for classifier models.
@@ -39,7 +42,7 @@ def classifier_defaults():
         classifier_pool="attention",
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def model_and_diffusion_defaults():
     """
     Defaults for image training.
@@ -64,13 +67,13 @@ def model_and_diffusion_defaults():
     res.update(diffusion_defaults())
     return res
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def classifier_and_diffusion_defaults():
     res = classifier_defaults()
     res.update(diffusion_defaults())
     return res
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def create_model_and_diffusion(
     image_size,
     class_cond,
@@ -126,7 +129,7 @@ def create_model_and_diffusion(
     )
     return model, diffusion
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def create_model(
     image_size,
     num_channels,
@@ -183,7 +186,7 @@ def create_model(
         use_new_attention_order=use_new_attention_order,
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def create_classifier_and_diffusion(
     image_size,
     classifier_use_fp16,
@@ -224,7 +227,7 @@ def create_classifier_and_diffusion(
     )
     return classifier, diffusion
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def create_classifier(
     image_size,
     classifier_use_fp16,
@@ -265,7 +268,7 @@ def create_classifier(
         pool=classifier_pool,
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def sr_model_and_diffusion_defaults():
     res = model_and_diffusion_defaults()
     res["large_size"] = 256
@@ -276,7 +279,7 @@ def sr_model_and_diffusion_defaults():
             del res[k]
     return res
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def sr_create_model_and_diffusion(
     large_size,
     small_size,
@@ -330,7 +333,7 @@ def sr_create_model_and_diffusion(
     )
     return model, diffusion
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def sr_create_model(
     large_size,
     small_size,
@@ -382,7 +385,7 @@ def sr_create_model(
         use_fp16=use_fp16,
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def create_gaussian_diffusion(
     *,
     steps=1000,
@@ -423,7 +426,7 @@ def create_gaussian_diffusion(
         rescale_timesteps=rescale_timesteps,
     )
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def add_dict_to_argparser(parser, default_dict):
     for k, v in default_dict.items():
         v_type = type(v)
@@ -433,11 +436,11 @@ def add_dict_to_argparser(parser, default_dict):
             v_type = str2bool
         parser.add_argument(f"--{k}", default=v, type=v_type)
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def args_to_dict(args, keys):
     return {k: getattr(args, k) for k in keys}
 
-
+@jit(forceobj=True,fastmath=True,cache=True)
 def str2bool(v):
     """
     https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
