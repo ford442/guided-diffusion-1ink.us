@@ -2,10 +2,10 @@ import argparse
 import inspect
 
 from . import gaussian_diffusion as gd
-from .respace import SpacedDiffusion, space_timesteps
-from .unet import SuperResModel, UNetModel, EncoderUNetModel
+from .respace import SpacedDiffusion,space_timesteps
+from .unet import SuperResModel,UNetModel,EncoderUNetModel
 
-NUM_CLASSES = 1000
+NUM_CLASSES=1000
 
 
 def diffusion_defaults():
@@ -33,9 +33,9 @@ def classifier_defaults():
         classifier_use_fp16=False,
         classifier_width=128,
         classifier_depth=2,
-        classifier_attention_resolutions="32,16,8",  # 16
-        classifier_use_scale_shift_norm=True,  # False
-        classifier_resblock_updown=True,  # False
+        classifier_attention_resolutions="32,16,8", # 16
+        classifier_use_scale_shift_norm=True, # False
+        classifier_resblock_updown=True, # False
         classifier_pool="attention",
     )
 
@@ -44,7 +44,7 @@ def model_and_diffusion_defaults():
     """
     Defaults for image training.
     """
-    res = dict(
+    res=dict(
         image_size=64,
         num_channels=128,
         num_res_blocks=2,
@@ -66,7 +66,7 @@ def model_and_diffusion_defaults():
 
 
 def classifier_and_diffusion_defaults():
-    res = classifier_defaults()
+    res=classifier_defaults()
     res.update(diffusion_defaults())
     return res
 
@@ -96,7 +96,7 @@ def create_model_and_diffusion(
     use_fp16,
     use_new_attention_order,
 ):
-    model = create_model(
+    model=create_model(
         image_size,
         num_channels,
         num_res_blocks,
@@ -114,7 +114,7 @@ def create_model_and_diffusion(
         use_fp16=use_fp16,
         use_new_attention_order=use_new_attention_order,
     )
-    diffusion = create_gaussian_diffusion(
+    diffusion=create_gaussian_diffusion(
         steps=diffusion_steps,
         learn_sigma=learn_sigma,
         noise_schedule=noise_schedule,
@@ -124,7 +124,7 @@ def create_model_and_diffusion(
         rescale_learned_sigmas=rescale_learned_sigmas,
         timestep_respacing=timestep_respacing,
     )
-    return model, diffusion
+    return model,diffusion
 
 
 def create_model(
@@ -147,19 +147,19 @@ def create_model(
 ):
     if channel_mult == "":
         if image_size == 512:
-            channel_mult = (0.5, 1, 1, 2, 2, 4, 4)
+            channel_mult=(0.5,1,1,2,2,4,4)
         elif image_size == 256:
-            channel_mult = (1, 1, 2, 2, 4, 4)
+            channel_mult=(1,1,2,2,4,4)
         elif image_size == 128:
-            channel_mult = (1, 1, 2, 3, 4)
+            channel_mult=(1,1,2,3,4)
         elif image_size == 64:
-            channel_mult = (1, 2, 3, 4)
+            channel_mult=(1,2,3,4)
         else:
             raise ValueError(f"unsupported image size: {image_size}")
     else:
-        channel_mult = tuple(int(ch_mult) for ch_mult in channel_mult.split(","))
+        channel_mult=tuple(int(ch_mult) for ch_mult in channel_mult.split(","))
 
-    attention_ds = []
+    attention_ds=[]
     for res in attention_resolutions.split(","):
         attention_ds.append(image_size // int(res))
 
@@ -202,7 +202,7 @@ def create_classifier_and_diffusion(
     rescale_timesteps,
     rescale_learned_sigmas,
 ):
-    classifier = create_classifier(
+    classifier=create_classifier(
         image_size,
         classifier_use_fp16,
         classifier_width,
@@ -212,7 +212,7 @@ def create_classifier_and_diffusion(
         classifier_resblock_updown,
         classifier_pool,
     )
-    diffusion = create_gaussian_diffusion(
+    diffusion=create_gaussian_diffusion(
         steps=diffusion_steps,
         learn_sigma=learn_sigma,
         noise_schedule=noise_schedule,
@@ -222,7 +222,7 @@ def create_classifier_and_diffusion(
         rescale_learned_sigmas=rescale_learned_sigmas,
         timestep_respacing=timestep_respacing,
     )
-    return classifier, diffusion
+    return classifier,diffusion
 
 
 def create_classifier(
@@ -236,17 +236,17 @@ def create_classifier(
     classifier_pool,
 ):
     if image_size == 512:
-        channel_mult = (0.5, 1, 1, 2, 2, 4, 4)
+        channel_mult=(0.5,1,1,2,2,4,4)
     elif image_size == 256:
-        channel_mult = (1, 1, 2, 2, 4, 4)
+        channel_mult=(1,1,2,2,4,4)
     elif image_size == 128:
-        channel_mult = (1, 1, 2, 3, 4)
+        channel_mult=(1,1,2,3,4)
     elif image_size == 64:
-        channel_mult = (1, 2, 3, 4)
+        channel_mult=(1,2,3,4)
     else:
         raise ValueError(f"unsupported image size: {image_size}")
 
-    attention_ds = []
+    attention_ds=[]
     for res in classifier_attention_resolutions.split(","):
         attention_ds.append(image_size // int(res))
 
@@ -267,10 +267,10 @@ def create_classifier(
 
 
 def sr_model_and_diffusion_defaults():
-    res = model_and_diffusion_defaults()
-    res["large_size"] = 256
-    res["small_size"] = 64
-    arg_names = inspect.getfullargspec(sr_create_model_and_diffusion)[0]
+    res=model_and_diffusion_defaults()
+    res["large_size"]=256
+    res["small_size"]=64
+    arg_names=inspect.getfullargspec(sr_create_model_and_diffusion)[0]
     for k in res.copy().keys():
         if k not in arg_names:
             del res[k]
@@ -301,7 +301,7 @@ def sr_create_model_and_diffusion(
     resblock_updown,
     use_fp16,
 ):
-    model = sr_create_model(
+    model=sr_create_model(
         large_size,
         small_size,
         num_channels,
@@ -318,7 +318,7 @@ def sr_create_model_and_diffusion(
         resblock_updown=resblock_updown,
         use_fp16=use_fp16,
     )
-    diffusion = create_gaussian_diffusion(
+    diffusion=create_gaussian_diffusion(
         steps=diffusion_steps,
         learn_sigma=learn_sigma,
         noise_schedule=noise_schedule,
@@ -328,7 +328,7 @@ def sr_create_model_and_diffusion(
         rescale_learned_sigmas=rescale_learned_sigmas,
         timestep_respacing=timestep_respacing,
     )
-    return model, diffusion
+    return model,diffusion
 
 
 def sr_create_model(
@@ -348,18 +348,18 @@ def sr_create_model(
     resblock_updown,
     use_fp16,
 ):
-    _ = small_size  # hack to prevent unused variable
+    _=small_size  # hack to prevent unused variable
 
     if large_size == 512:
-        channel_mult = (1, 1, 2, 2, 4, 4)
+        channel_mult=(1,1,2,2,4,4)
     elif large_size == 256:
-        channel_mult = (1, 1, 2, 2, 4, 4)
+        channel_mult=(1,1,2,2,4,4)
     elif large_size == 64:
-        channel_mult = (1, 2, 3, 4)
+        channel_mult=(1,2,3,4)
     else:
         raise ValueError(f"unsupported large size: {large_size}")
 
-    attention_ds = []
+    attention_ds=[]
     for res in attention_resolutions.split(","):
         attention_ds.append(large_size // int(res))
 
@@ -395,17 +395,17 @@ def create_gaussian_diffusion(
     rescale_learned_sigmas=False,
     timestep_respacing="",
 ):
-    betas = gd.get_named_beta_schedule(noise_schedule, steps)
+    betas=gd.get_named_beta_schedule(noise_schedule,steps)
     if use_kl:
-        loss_type = gd.LossType.RESCALED_KL
+        loss_type=gd.LossType.RESCALED_KL
     elif rescale_learned_sigmas:
-        loss_type = gd.LossType.RESCALED_MSE
+        loss_type=gd.LossType.RESCALED_MSE
     else:
-        loss_type = gd.LossType.MSE
+        loss_type=gd.LossType.MSE
     if not timestep_respacing:
-        timestep_respacing = [steps]
+        timestep_respacing=[steps]
     return SpacedDiffusion(
-        use_timesteps=space_timesteps(steps, timestep_respacing),
+        use_timesteps=space_timesteps(steps,timestep_respacing),
         betas=betas,
         model_mean_type=(
             gd.ModelMeanType.EPSILON if not predict_xstart else gd.ModelMeanType.START_X
@@ -424,29 +424,29 @@ def create_gaussian_diffusion(
     )
 
 
-def add_dict_to_argparser(parser, default_dict):
-    for k, v in default_dict.items():
-        v_type = type(v)
+def add_dict_to_argparser(parser,default_dict):
+    for k,v in default_dict.items():
+        v_type=type(v)
         if v is None:
-            v_type = str
-        elif isinstance(v, bool):
-            v_type = str2bool
-        parser.add_argument(f"--{k}", default=v, type=v_type)
+            v_type=str
+        elif isinstance(v,bool):
+            v_type=str2bool
+        parser.add_argument(f"--{k}",default=v,type=v_type)
 
 
-def args_to_dict(args, keys):
-    return {k: getattr(args, k) for k in keys}
+def args_to_dict(args,keys):
+    return {k: getattr(args,k) for k in keys}
 
 
 def str2bool(v):
     """
     https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
     """
-    if isinstance(v, bool):
+    if isinstance(v,bool):
         return v
-    if v.lower() in ("yes", "true", "t", "y", "1"):
+    if v.lower() in ("yes","true","t","y","1"):
         return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
+    elif v.lower() in ("no","false","f","n","0"):
         return False
     else:
         raise argparse.ArgumentTypeError("boolean value expected")
