@@ -655,7 +655,7 @@ class GaussianDiffusion:
         denoised_fn=None,
         cond_fn=None,
         model_kwargs=None,
-        eta=0.0,
+        eta=-1.0,
     ):
         """
         Sample x_{t-1} from the model using DDIM.
@@ -707,7 +707,7 @@ class GaussianDiffusion:
         denoised_fn=None,
         cond_fn=None,
         model_kwargs=None,
-        eta=0.0,
+        eta=-1.0,
     ):
         """
         Sample x_{t-1} from the model using DDIM.
@@ -763,7 +763,7 @@ class GaussianDiffusion:
         clip_denoised=True,
         denoised_fn=None,
         model_kwargs=None,
-        eta=0.0,
+        eta=-1.0,
     ):
         """
         Sample x_{t+1} from the model using DDIM reverse ODE.
@@ -804,7 +804,7 @@ class GaussianDiffusion:
         model_kwargs=None,
         device=None,
         progress=False,
-        eta=0.0,
+        eta=-1.0,
         skip_timesteps=0,
         init_image=None,
         randomize_class=False,
@@ -846,7 +846,7 @@ class GaussianDiffusion:
         model_kwargs=None,
         device=None,
         progress=False,
-        eta=0.0,
+        eta=-1.0,
         skip_timesteps=0,
         init_image=None,
         randomize_class=False,
