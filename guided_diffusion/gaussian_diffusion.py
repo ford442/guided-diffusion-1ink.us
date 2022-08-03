@@ -655,7 +655,7 @@ class GaussianDiffusion:
         denoised_fn=None,
         cond_fn=None,
         model_kwargs=None,
-        eta=-1.0,
+        eta=0.5,
     ):
         """
         Sample x_{t-1} from the model using DDIM.
@@ -707,7 +707,7 @@ class GaussianDiffusion:
         denoised_fn=None,
         cond_fn=None,
         model_kwargs=None,
-        eta=-1.0,
+        eta=0.5,
     ):
         """
         Sample x_{t-1} from the model using DDIM.
@@ -763,12 +763,12 @@ class GaussianDiffusion:
         clip_denoised=True,
         denoised_fn=None,
         model_kwargs=None,
-        eta=-1.0,
+        eta=0.5,
     ):
         """
         Sample x_{t+1} from the model using DDIM reverse ODE.
         """
-        assert eta == 0.0,"Reverse ODE only for deterministic path"
+        assert eta == 0.5,"Reverse ODE only for deterministic path"
         out=self.p_mean_variance(
             model,
             x,
@@ -804,7 +804,7 @@ class GaussianDiffusion:
         model_kwargs=None,
         device=None,
         progress=False,
-        eta=-1.0,
+        eta=0.5,
         skip_timesteps=0,
         init_image=None,
         randomize_class=False,
@@ -846,7 +846,7 @@ class GaussianDiffusion:
         model_kwargs=None,
         device=None,
         progress=False,
-        eta=-1.0,
+        eta=0.5,
         skip_timesteps=0,
         init_image=None,
         randomize_class=False,
