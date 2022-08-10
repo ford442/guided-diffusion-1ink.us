@@ -111,7 +111,7 @@ def create_model_and_diffusion(
         use_scale_shift_norm=use_scale_shift_norm,
         dropout=dropout,
         resblock_updown=resblock_updown,
-        use_fp16=use_fp16,
+        use_fp16=False,
         use_new_attention_order=use_new_attention_order,
     )
     diffusion=create_gaussian_diffusion(
