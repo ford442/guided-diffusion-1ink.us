@@ -14,7 +14,7 @@ import torch as th
 from .nn import mean_flat
 from .losses import normal_kl,discretized_gaussian_log_likelihood
 
-
+my_steps=100
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     """
     Get a pre-defined beta schedule for the given name.
@@ -830,7 +830,6 @@ class GaussianDiffusion:
         final=None
         for sample in self.ddim_sample_loop_progressive(
             model,
-            my_steps,
             shape,
             noise=noise,
             clip_denoised=clip_denoised,
@@ -851,7 +850,6 @@ class GaussianDiffusion:
     def ddim_sample_loop_progressive(
         self,
         model,
-        my_steps,
         shape,
         noise=None,
         clip_denoised=True,
