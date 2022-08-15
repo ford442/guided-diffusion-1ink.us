@@ -831,6 +831,7 @@ class GaussianDiffusion:
         final=None
         for sample in self.ddim_sample_loop_progressive(
             model,
+            my_steps,
             shape,
             noise=noise,
             clip_denoised=clip_denoised,
