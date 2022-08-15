@@ -621,7 +621,6 @@ class GaussianDiffusion:
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-1)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
-        indices=indices.reverse()
         
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
@@ -631,7 +630,7 @@ class GaussianDiffusion:
             # Lazy import so that we don't depend on tqdm.
             from tqdm.auto import tqdm
 
-            #indices=tqdm(indices)
+            indices=tqdm(indices)
 
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -883,7 +882,7 @@ class GaussianDiffusion:
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-1)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
-        indices=indices.reverse()
+
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
@@ -892,7 +891,7 @@ class GaussianDiffusion:
             # Lazy import so that we don't depend on tqdm.
             from tqdm.auto import tqdm
 
-            #indices=tqdm(indices)
+            indices=tqdm(indices)
 
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -1082,7 +1081,7 @@ class GaussianDiffusion:
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-1)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
-        indices=indices.reverse()
+
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
@@ -1091,7 +1090,7 @@ class GaussianDiffusion:
             # Lazy import so that we don't depend on tqdm.
             from tqdm.auto import tqdm
 
-            #indices=tqdm(indices)
+            indices=tqdm(indices)
 
         old_out=None
 
