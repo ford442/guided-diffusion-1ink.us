@@ -621,6 +621,7 @@ class GaussianDiffusion:
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
+        indices=indices.reverse()
         
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
@@ -882,7 +883,7 @@ class GaussianDiffusion:
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
-        
+        indices=indices.reverse()
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
@@ -1081,7 +1082,7 @@ class GaussianDiffusion:
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
-        
+        indices=indices.reverse()
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
