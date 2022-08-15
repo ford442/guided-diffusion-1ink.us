@@ -75,12 +75,12 @@ class GaussianDiffusion:
         log_variance=_extract_into_tensor(self.log_one_minus_alphas_cumprod,t,x_start.shape)
         return mean,variance,log_variance
     def q_sample(self,x_start,t,noise=None):
-          if noise is None:
+        if noise is None:
             noise=th.randn_like(x_start)
         assert noise.shape == x_start.shape
         return (_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start+ _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod,t,x_start.shape)* noise)
     def q_posterior_mean_variance(self,x_start,x_t,t):
-          assert x_start.shape == x_t.shape
+        assert x_start.shape == x_t.shape
         posterior_mean=(_extract_into_tensor(self.posterior_mean_coef1,t,x_t.shape) * x_start+ _extract_into_tensor(self.posterior_mean_coef2,t,x_t.shape) * x_t)
         posterior_variance=_extract_into_tensor(self.posterior_variance,t,x_t.shape)
         posterior_log_variance_clipped=_extract_into_tensor(self.posterior_log_variance_clipped,t,x_t.shape)
