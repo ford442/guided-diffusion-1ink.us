@@ -70,7 +70,7 @@ class GaussianDiffusion:
         self.posterior_mean_coef1=(betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod))
         self.posterior_mean_coef2=((1.0 - self.alphas_cumprod_prev)* np.sqrt(alphas)/ (1.0 - self.alphas_cumprod))
     def q_mean_variance(self,x_start,t):
-         mean=(_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start)
+        mean=(_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start)
         variance=_extract_into_tensor(1.0 - self.alphas_cumprod,t,x_start.shape)
         log_variance=_extract_into_tensor(self.log_one_minus_alphas_cumprod,t,x_start.shape)
         return mean,variance,log_variance
