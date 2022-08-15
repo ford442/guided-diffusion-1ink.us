@@ -39,7 +39,7 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
             lambda t: math.cos((t + 0.008) / 1.008 * math.pi / 2) ** 2,
         )
     if schedule_name == "1inkus":
-        scale=1000 / num_diffusion_timesteps
+        scale=1000.0 / num_diffusion_timesteps
         beta_start=scale * 0.0001
         beta_end=scale * 0.02
         return np.linspace(
@@ -626,8 +626,9 @@ class GaussianDiffusion:
         custom_timesteps=[self.num_timesteps-skip_timesteps]
         for l in range(my_steps):
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
-            custom_timesteps.append(mM)
+            custom_timesteps.append(int(mM))
         indices=list(custom_timesteps)
+        
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
@@ -884,7 +885,7 @@ class GaussianDiffusion:
         custom_timesteps=[self.num_timesteps-skip_timesteps]
         for l in range(my_steps):
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
-            custom_timesteps.append(mM)
+            custom_timesteps.append(int(mM))
         indices=list(custom_timesteps)
         
         if init_image is not None:
@@ -1081,7 +1082,7 @@ class GaussianDiffusion:
         custom_timesteps=[self.num_timesteps-skip_timesteps]
         for l in range(my_steps):
             mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
-            custom_timesteps.append(mM)
+            custom_timesteps.append(int(mM))
         indices=list(custom_timesteps)
         
         if init_image is not None:
