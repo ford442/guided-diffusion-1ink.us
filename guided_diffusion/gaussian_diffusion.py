@@ -631,7 +631,7 @@ class GaussianDiffusion:
             # Lazy import so that we don't depend on tqdm.
             from tqdm.auto import tqdm
 
-            indices=tqdm(indices)
+            #indices=tqdm(indices)
 
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -892,7 +892,7 @@ class GaussianDiffusion:
             # Lazy import so that we don't depend on tqdm.
             from tqdm.auto import tqdm
 
-            indices=tqdm(indices)
+            #indices=tqdm(indices)
 
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -1091,7 +1091,7 @@ class GaussianDiffusion:
             # Lazy import so that we don't depend on tqdm.
             from tqdm.auto import tqdm
 
-            indices=tqdm(indices)
+            #indices=tqdm(indices)
 
         old_out=None
 
