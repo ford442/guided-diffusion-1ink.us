@@ -38,7 +38,13 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
             num_diffusion_timesteps,
             lambda t: math.cos((t + 0.008) / 1.008 * math.pi / 2) ** 2,
         )
-    else:
+    if schedule_name == "1inkus":
+        scale=1000.0 / 8100.0
+        beta_start=scale * 0.0001
+        beta_end=scale * 0.02
+        return np.linspace(
+            beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64
+        )    else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
 
 
@@ -616,9 +622,9 @@ class GaussianDiffusion:
 
         #indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         
-        custom_timesteps=[self.num_timesteps-skip_timesteps]
+        custom_timesteps=[8100]
         for l in range(my_steps):
-            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-1)))
+            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
         
@@ -877,9 +883,9 @@ class GaussianDiffusion:
 
         #indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         
-        custom_timesteps=[self.num_timesteps-skip_timesteps]
+        custom_timesteps=[8100]
         for l in range(my_steps):
-            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-1)))
+            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
 
@@ -1076,9 +1082,9 @@ class GaussianDiffusion:
 
         #indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         
-        custom_timesteps=[self.num_timesteps-skip_timesteps]
+        custom_timesteps=[8100]
         for l in range(my_steps):
-            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-1)))
+            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
             custom_timesteps.append(mM)
         indices=list(custom_timesteps)
 
