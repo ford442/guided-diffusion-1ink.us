@@ -1,4 +1,3 @@
-
 import enum
 import math
 import numpy as np
@@ -7,7 +6,6 @@ from .nn import mean_flat
 from .losses import normal_kl,discretized_gaussian_log_likelihood
 import tqdm
 from tqdm.auto import tqdm
-
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     if schedule_name == "linear":
         scale=1000 / num_diffusion_timesteps
@@ -15,17 +13,12 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
         beta_end=scale * 0.02
         return np.linspace(beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64)
     elif schedule_name == "cosine":
-        return betas_for_alpha_bar(
-            num_diffusion_timesteps,
-            lambda t: math.cos((t + 0.008) / 1.008 * math.pi / 2) ** 2,
-        )
+        return betas_for_alpha_bar(num_diffusion_timesteps,lambda t: math.cos((t + 0.008) / 1.008 * math.pi / 2) ** 2,)
     elif schedule_name == "1inkus":
         scale=1000.0 / 8100.0
         beta_start=scale * 0.0001
         beta_end=scale * 0.02
-        return np.linspace(
-            beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64
-        )
+        return np.linspace(beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64)
     else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
 def betas_for_alpha_bar(num_diffusion_timesteps,alpha_bar,max_beta=0.999):
@@ -85,26 +78,15 @@ class GaussianDiffusion:
           if noise is None:
             noise=th.randn_like(x_start)
         assert noise.shape == x_start.shape
-        return (
-            _extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start
-            + _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod,t,x_start.shape)
-            * noise
-        )
+        return (_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start+ _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod,t,x_start.shape)* noise)
     def q_posterior_mean_variance(self,x_start,x_t,t):
           assert x_start.shape == x_t.shape
-        posterior_mean=(
-            _extract_into_tensor(self.posterior_mean_coef1,t,x_t.shape) * x_start
-            + _extract_into_tensor(self.posterior_mean_coef2,t,x_t.shape) * x_t
-        )
+        posterior_mean=(_extract_into_tensor(self.posterior_mean_coef1,t,x_t.shape) * x_start+ _extract_into_tensor(self.posterior_mean_coef2,t,x_t.shape) * x_t)
         posterior_variance=_extract_into_tensor(self.posterior_variance,t,x_t.shape)
-        posterior_log_variance_clipped=_extract_into_tensor(
-            self.posterior_log_variance_clipped,t,x_t.shape
-        )
+        posterior_log_variance_clipped=_extract_into_tensor(self.posterior_log_variance_clipped,t,x_t.shape)
         assert (posterior_mean.shape[0]== posterior_variance.shape[0]== posterior_log_variance_clipped.shape[0]== x_start.shape[0])
         return posterior_mean,posterior_variance,posterior_log_variance_clipped
-    def p_mean_variance(
-        self,model,x,t,clip_denoised=True,denoised_fn=None,model_kwargs=None
-    ):
+    def p_mean_variance(self,model,x,t,clip_denoised=True,denoised_fn=None,model_kwargs=None):
         if model_kwargs is None:
             model_kwargs={}
         B,C=x.shape[:2]
@@ -124,12 +106,8 @@ class GaussianDiffusion:
                 model_variance=th.exp(model_log_variance)
         else:
             model_variance,model_log_variance={
-                ModelVarType.FIXED_LARGE: (
-                    np.append(self.posterior_variance[1],self.betas[1:]),
-                    np.log(np.append(self.posterior_variance[1],self.betas[1:])),
-                ),
-                ModelVarType.FIXED_SMALL: (self.posterior_variance,self.posterior_log_variance_clipped,),
-            }[self.model_var_type]
+                ModelVarType.FIXED_LARGE: (np.append(self.posterior_variance[1],self.betas[1:]),np.log(np.append(self.posterior_variance[1],self.betas[1:])),),
+                ModelVarType.FIXED_SMALL: (self.posterior_variance,self.posterior_log_variance_clipped,),}[self.model_var_type]
             model_variance=_extract_into_tensor(model_variance,t,x.shape)
             model_log_variance=_extract_into_tensor(model_log_variance,t,x.shape)
         def process_xstart(x):
@@ -145,24 +123,15 @@ class GaussianDiffusion:
             if self.model_mean_type == ModelMeanType.START_X:
                 pred_xstart=process_xstart(model_output)
             else:
-                pred_xstart=process_xstart(
-                    self._predict_xstart_from_eps(x_t=x,t=t,eps=model_output)
-                )
-            model_mean,_,_=self.q_posterior_mean_variance(
-                x_start=pred_xstart,x_t=x,t=t
-            )
+                pred_xstart=process_xstart(self._predict_xstart_from_eps(x_t=x,t=t,eps=model_output))
+            model_mean,_,_=self.q_posterior_mean_variance(x_start=pred_xstart,x_t=x,t=t)
         else:
             raise NotImplementedError(self.model_mean_type)
-        assert (
-            model_mean.shape == model_log_variance.shape == pred_xstart.shape == x.shape
-        )
+        assert (model_mean.shape == model_log_variance.shape == pred_xstart.shape == x.shape)
         return {"mean": model_mean,"variance": model_variance,"log_variance": model_log_variance,"pred_xstart": pred_xstart,}
     def _predict_xstart_from_eps(self,x_t,t,eps):
         assert x_t.shape == eps.shape
-        return (
-            _extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x_t.shape) * x_t
-            - _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x_t.shape) * eps
-        )
+        return (_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x_t.shape) * x_t- _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x_t.shape) * eps)
     def _predict_xstart_from_xprev(self,x_t,t,xprev):
         assert x_t.shape == xprev.shape
         return (  # (xprev - coef2*x_t) / coef1
@@ -171,10 +140,7 @@ class GaussianDiffusion:
             * x_t
         )
     def _predict_eps_from_xstart(self,x_t,t,pred_xstart):
-        return (
-            _extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x_t.shape) * x_t
-            - pred_xstart
-        ) / _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x_t.shape)
+        return (_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x_t.shape) * x_t- pred_xstart) / _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x_t.shape)
     def _scale_timesteps(self,t):
         if self.rescale_timesteps:
             return t.float() * (1000.0 / self.num_timesteps)
@@ -227,8 +193,7 @@ class GaussianDiffusion:
         final=None
         for sample in self.p_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,
             denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,device=device,progress=progress,
-            skip_timesteps=skip_timesteps,init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,
-        ):
+            skip_timesteps=skip_timesteps,init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,):
             final=sample
         return final["sample"]
     def p_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
@@ -251,9 +216,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,
-                                               size=model_kwargs['y'].shape,
-                                               device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
             with th.no_grad():
                 sample_fn=self.p_sample_with_grad if cond_fn_with_grad else self.p_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
@@ -341,14 +304,7 @@ class GaussianDiffusion:
         def get_model_output(x,t):
             with th.set_grad_enabled(cond_fn_with_grad and cond_fn is not None):
                 x=x.detach().requires_grad_() if cond_fn_with_grad else x
-                out_orig=self.p_mean_variance(
-                    model,
-                    x,
-                    t,
-                    clip_denoised=clip_denoised,
-                    denoised_fn=denoised_fn,
-                    model_kwargs=model_kwargs,
-                )
+                out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
                 if cond_fn is not None:
                     if cond_fn_with_grad:
                         out=self.condition_score_with_grad(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
@@ -363,7 +319,6 @@ class GaussianDiffusion:
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
         eps,out,out_orig=get_model_output(x,t)
         if order > 1 and old_out is None:
-            # Pseudo Improved Euler
             old_eps=[eps]
             mean_pred=out["pred_xstart"] * th.sqrt(alpha_bar_prev) + th.sqrt(1 - alpha_bar_prev) * eps
             eps_2,_,_=get_model_output(mean_pred,t - 1)
@@ -391,59 +346,16 @@ class GaussianDiffusion:
         nonzero_mask=(t != 0).float().view(-1,*([1] * (len(x.shape) - 1)))
         sample=mean_pred * nonzero_mask + out["pred_xstart"] * (1 - nonzero_mask)
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"],"old_eps": old_eps}
-    def plms_sample_loop(
-        self,
-        model,
-        shape,
-        noise=None,
-        clip_denoised=True,
-        denoised_fn=None,
-        cond_fn=None,
-        model_kwargs=None,
-        device=None,
-        progress=False,
-        skip_timesteps=0,
-        init_image=None,
-        randomize_class=False,
-        cond_fn_with_grad=False,
-        order=2,
-    ):
+    def plms_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,progress=False,
+        skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,order=2,):
         final=None
-        for sample in self.plms_sample_loop_progressive(
-            model,
-            shape,
-            noise=noise,
-            clip_denoised=clip_denoised,
-            denoised_fn=denoised_fn,
-            cond_fn=cond_fn,
-            model_kwargs=model_kwargs,
-            device=device,
-            progress=progress,
-            skip_timesteps=skip_timesteps,
-            init_image=init_image,
-            randomize_class=randomize_class,
-            cond_fn_with_grad=cond_fn_with_grad,
-            order=order,
-        ):
+        for sample in self.plms_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,
+            model_kwargs=model_kwargs,device=device,progress=progress,skip_timesteps=skip_timesteps,init_image=init_image,
+            randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,order=order,):
             final=sample
         return final["sample"]
-    def plms_sample_loop_progressive(
-        self,
-        model,
-        shape,
-        noise=None,
-        clip_denoised=True,
-        denoised_fn=None,
-        cond_fn=None,
-        model_kwargs=None,
-        device=None,
-        progress=False,
-        skip_timesteps=0,
-        init_image=None,
-        randomize_class=False,
-        cond_fn_with_grad=False,
-        order=2,
-    ):
+    def plms_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,
+        progress=False,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,order=2,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
@@ -465,18 +377,8 @@ class GaussianDiffusion:
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
             with th.no_grad():
-                out=self.plms_sample(
-                    model,
-                    img,
-                    t,
-                    clip_denoised=clip_denoised,
-                    denoised_fn=denoised_fn,
-                    cond_fn=cond_fn,
-                    model_kwargs=model_kwargs,
-                    cond_fn_with_grad=cond_fn_with_grad,
-                    order=order,
-                    old_out=old_out,
-                )
+                out=self.plms_sample(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,
+                    cond_fn_with_grad=cond_fn_with_grad,order=order,old_out=old_out,)
                 yield out
                 old_out=out
                 img=out["sample"]
