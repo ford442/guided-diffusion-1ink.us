@@ -625,7 +625,7 @@ class GaussianDiffusion:
         
         custom_timesteps=[self.num_timesteps-skip_timesteps]
         for l in range(my_steps):
-            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
+            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps)))
             custom_timesteps.append(float(mM))
         indices=list(custom_timesteps)
         
@@ -884,7 +884,7 @@ class GaussianDiffusion:
 
         custom_timesteps=[self.num_timesteps-skip_timesteps]
         for l in range(my_steps):
-            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
+            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps)))
             custom_timesteps.append(float(mM))
         indices=list(custom_timesteps)
         
@@ -1081,7 +1081,7 @@ class GaussianDiffusion:
 
         custom_timesteps=[self.num_timesteps-skip_timesteps]
         for l in range(my_steps):
-            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps-l)))
+            mM=custom_timesteps[l]-(math.floor((custom_timesteps[l])/(my_steps)))
             custom_timesteps.append(float(mM))
         indices=list(custom_timesteps)
         
