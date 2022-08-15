@@ -851,6 +851,7 @@ class GaussianDiffusion:
     def ddim_sample_loop_progressive(
         self,
         model,
+        my_steps,
         shape,
         noise=None,
         clip_denoised=True,
