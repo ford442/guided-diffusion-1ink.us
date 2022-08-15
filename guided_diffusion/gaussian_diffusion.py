@@ -13,7 +13,7 @@ import torch as th
 
 from .nn import mean_flat
 from .losses import normal_kl,discretized_gaussian_log_likelihood
-
+my_steps=100
 
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     """
