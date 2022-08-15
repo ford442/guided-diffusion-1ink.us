@@ -44,7 +44,8 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
         beta_end=scale * 0.02
         return np.linspace(
             beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64
-        )    else:
+        )    
+    else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
 
 
