@@ -2,6 +2,7 @@ import enum
 import math
 import numpy as np
 import torch as th
+from tqdm.notebook import trange, tqdm
 from .nn import mean_flat
 from .losses import normal_kl,discretized_gaussian_log_likelihood
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
@@ -210,7 +211,7 @@ class GaussianDiffusion:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
-            from tqdm.auto import tqdm
+           # from tqdm.auto import tqdm
             indices=tqdm(indices)
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -287,7 +288,7 @@ class GaussianDiffusion:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
-            from tqdm.auto import tqdm
+            #from tqdm.auto import tqdm
             indices=tqdm(indices)
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -370,7 +371,7 @@ class GaussianDiffusion:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
-            from tqdm.auto import tqdm
+            #from tqdm.auto import tqdm
             indices=tqdm(indices)
         old_out=None
         for i in indices:
