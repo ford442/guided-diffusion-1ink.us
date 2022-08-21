@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 from .nn import mean_flat
 from .losses import normal_kl,discretized_gaussian_log_likelihood
-import tqdm
+import tqdm.auto
 from tqdm.auto import tqdm
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     if schedule_name == "linear":
@@ -15,9 +15,9 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     elif schedule_name == "cosine":
         return betas_for_alpha_bar(num_diffusion_timesteps,lambda t: math.cos((t + 0.008) / 1.008 * math.pi / 2) ** 2,)
     elif schedule_name == "1inkus":
-        scale=1000.0 / num_diffusion_timesteps
-        beta_start=scale * 0.0001
-        beta_end=scale * 0.02
+        scale=1000.0/num_diffusion_timesteps
+        beta_start=scale*0.0001
+        beta_end=scale*0.02
         return np.linspace(beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64)
     else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
@@ -212,6 +212,7 @@ class GaussianDiffusion:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
+            
             indices=tqdm(indices)
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -288,6 +289,8 @@ class GaussianDiffusion:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
+            
+            
             indices=tqdm(indices)
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
@@ -370,6 +373,7 @@ class GaussianDiffusion:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
+            
             indices=tqdm(indices)
         old_out=None
         for i in indices:
