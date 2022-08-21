@@ -58,7 +58,7 @@ def model_and_diffusion_defaults():
         use_checkpoint=False,
         use_scale_shift_norm=True,
         resblock_updown=False,
-        use_fp16=False,
+        use_fp16=True,
         use_new_attention_order=False,
     )
     res.update(diffusion_defaults())
@@ -111,7 +111,7 @@ def create_model_and_diffusion(
         use_scale_shift_norm=use_scale_shift_norm,
         dropout=dropout,
         resblock_updown=resblock_updown,
-        use_fp16=False,
+        use_fp16=True,
         use_new_attention_order=use_new_attention_order,
     )
     diffusion=create_gaussian_diffusion(
@@ -142,7 +142,7 @@ def create_model(
     use_scale_shift_norm=False,
     dropout=0,
     resblock_updown=False,
-    use_fp16=False,
+    use_fp16=True,
     use_new_attention_order=False,
 ):
     if channel_mult == "":
