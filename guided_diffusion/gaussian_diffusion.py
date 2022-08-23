@@ -273,12 +273,12 @@ class GaussianDiffusion:
         randomize_class=False,cond_fn_with_grad=False,):
         final=None
         for sample in self.ddim_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,
-            cond_fn=cond_fn,model_kwargs=model_kwargs,device=device,progress=progress,eta=eta,skip_timesteps=skip_timesteps,
+            cond_fn=cond_fn,model_kwargs=model_kwargs,device=th.device('cuda:0'),progress=progress,eta=eta,skip_timesteps=skip_timesteps,
             init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,):
             final=sample
         return final["sample"]
     def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
-        device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
+        device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
