@@ -192,7 +192,7 @@ class GaussianDiffusion:
         sample=out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample,"pred_xstart": out["pred_xstart"].detach()}
     def p_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
-        model_kwargs=None,device=None,progress=False,skip_timesteps=0,init_image=None,randomize_class=False,
+        model_kwargs=None,device=th.device('cuda:0'),progress=False,skip_timesteps=0,init_image=None,randomize_class=False,
         cond_fn_with_grad=False,):
         final=None
         for sample in self.p_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,
@@ -201,7 +201,7 @@ class GaussianDiffusion:
             final=sample
         return final["sample"]
     def p_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
-        device=None,progress=False,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
+        device=th.device('cuda:0'),progress=False,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
@@ -221,7 +221,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
             with th.no_grad():
                 sample_fn=self.p_sample_with_grad if cond_fn_with_grad else self.p_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
@@ -269,7 +269,7 @@ class GaussianDiffusion:
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
     def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
-        model_kwargs=None,device=None,progress=False,eta=0.0,skip_timesteps=0,init_image=None,
+        model_kwargs=None,device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,
         randomize_class=False,cond_fn_with_grad=False,):
         final=None
         for sample in self.ddim_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,
@@ -278,7 +278,7 @@ class GaussianDiffusion:
             final=sample
         return final["sample"]
     def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
-        device=None,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
+        device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
@@ -298,7 +298,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
@@ -352,7 +352,7 @@ class GaussianDiffusion:
         nonzero_mask=(t != 0).float().view(-1,*([1] * (len(x.shape) - 1)))
         sample=mean_pred * nonzero_mask + out["pred_xstart"] * (1 - nonzero_mask)
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"],"old_eps": old_eps}
-    def plms_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,progress=False,
+    def plms_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,device=th.device('cuda:0'),progress=False,
         skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,order=2,):
         final=None
         for sample in self.plms_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,
@@ -382,7 +382,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,device='cuda:0')
             with th.no_grad():
                 out=self.plms_sample(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,
                     cond_fn_with_grad=cond_fn_with_grad,order=order,old_out=old_out,)
@@ -463,7 +463,7 @@ class GaussianDiffusion:
         total_bpd=vb.sum(dim=1) + prior_bpd
         return {"total_bpd": total_bpd,"prior_bpd": prior_bpd,"vb": vb,"xstart_mse": xstart_mse,"mse": mse,}
 def _extract_into_tensor(arr,timesteps,broadcast_shape):
-    res=th.from_numpy(arr).to(device=timesteps.device)[timesteps].float()
+    res=th.from_numpy(arr).to(device='cuda:0')[timesteps].float()
     while len(res.shape) < len(broadcast_shape):
         res=res[...,None]
     return res.expand(broadcast_shape)
