@@ -221,7 +221,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,generator=th.Generator(device='cuda:0'),device=model_kwargs['y'].device)
             with th.no_grad():
                 sample_fn=self.p_sample_with_grad if cond_fn_with_grad else self.p_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
@@ -298,7 +298,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
+                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,generator=th.Generator(device='cuda:0'),device=device)
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
@@ -382,7 +382,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,device='cuda:0')
+                model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,generator=th.Generator(device='cuda:0'),device='cuda:0')
             with th.no_grad():
                 out=self.plms_sample(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,
                     cond_fn_with_grad=cond_fn_with_grad,order=order,old_out=old_out,)
