@@ -413,7 +413,7 @@ class UNetModel(nn.Module):
         self.input_blocks.apply(convert_module_to_f32)
         self.middle_block.apply(convert_module_to_f32)
         self.output_blocks.apply(convert_module_to_f32)
-def convert_to_fp64(self):
+    def convert_to_fp64(self):
         self.input_blocks.apply(convert_module_to_f64)
         self.middle_block.apply(convert_module_to_f64)
         self.output_blocks.apply(convert_module_to_f64)
