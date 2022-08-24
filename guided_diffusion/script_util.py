@@ -7,11 +7,7 @@ from .unet import SuperResModel,UNetModel,EncoderUNetModel
 
 NUM_CLASSES=1000
 
-
 def diffusion_defaults():
-    """
-    Defaults for image and classifier training.
-    """
     return dict(
         learn_sigma=False,
         diffusion_steps=1000,
@@ -23,27 +19,19 @@ def diffusion_defaults():
         rescale_learned_sigmas=False,
     )
 
-
 def classifier_defaults():
-    """
-    Defaults for classifier models.
-    """
     return dict(
         image_size=64,
         classifier_use_fp16=False,
         classifier_width=128,
         classifier_depth=2,
-        classifier_attention_resolutions="32,16,8", # 16
-        classifier_use_scale_shift_norm=True, # False
-        classifier_resblock_updown=True, # False
+        classifier_attention_resolutions="32,16,8",
+        classifier_use_scale_shift_norm=True,
+        classifier_resblock_updown=True,
         classifier_pool="attention",
     )
 
-
 def model_and_diffusion_defaults():
-    """
-    Defaults for image training.
-    """
     res=dict(
         image_size=64,
         num_channels=128,
@@ -64,12 +52,10 @@ def model_and_diffusion_defaults():
     res.update(diffusion_defaults())
     return res
 
-
 def classifier_and_diffusion_defaults():
     res=classifier_defaults()
     res.update(diffusion_defaults())
     return res
-
 
 def create_model_and_diffusion(
     image_size,
@@ -126,7 +112,6 @@ def create_model_and_diffusion(
     )
     return model,diffusion
 
-
 def create_model(
     image_size,
     num_channels,
@@ -182,7 +167,6 @@ def create_model(
         resblock_updown=resblock_updown,
         use_new_attention_order=use_new_attention_order,
     )
-
 
 def create_classifier_and_diffusion(
     image_size,
@@ -265,7 +249,6 @@ def create_classifier(
         pool=classifier_pool,
     )
 
-
 def sr_model_and_diffusion_defaults():
     res=model_and_diffusion_defaults()
     res["large_size"]=256
@@ -275,7 +258,6 @@ def sr_model_and_diffusion_defaults():
         if k not in arg_names:
             del res[k]
     return res
-
 
 def sr_create_model_and_diffusion(
     large_size,
@@ -330,7 +312,6 @@ def sr_create_model_and_diffusion(
     )
     return model,diffusion
 
-
 def sr_create_model(
     large_size,
     small_size,
@@ -348,8 +329,7 @@ def sr_create_model(
     resblock_updown,
     use_fp16,
 ):
-    _=small_size  # hack to prevent unused variable
-
+    _=small_size
     if large_size == 512:
         channel_mult=(1,1,2,2,4,4)
     elif large_size == 256:
@@ -358,11 +338,9 @@ def sr_create_model(
         channel_mult=(1,2,3,4)
     else:
         raise ValueError(f"unsupported large size: {large_size}")
-
     attention_ds=[]
     for res in attention_resolutions.split(","):
         attention_ds.append(large_size // int(res))
-
     return SuperResModel(
         image_size=large_size,
         in_channels=3,
@@ -381,7 +359,6 @@ def sr_create_model(
         resblock_updown=resblock_updown,
         use_fp16=use_fp16,
     )
-
 
 def create_gaussian_diffusion(
     *,
@@ -423,7 +400,6 @@ def create_gaussian_diffusion(
         rescale_timesteps=rescale_timesteps,
     )
 
-
 def add_dict_to_argparser(parser,default_dict):
     for k,v in default_dict.items():
         v_type=type(v)
@@ -433,15 +409,11 @@ def add_dict_to_argparser(parser,default_dict):
             v_type=str2bool
         parser.add_argument(f"--{k}",default=v,type=v_type)
 
-
 def args_to_dict(args,keys):
     return {k: getattr(args,k) for k in keys}
 
 
 def str2bool(v):
-    """
-    https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
-    """
     if isinstance(v,bool):
         return v
     if v.lower() in ("yes","true","t","y","1"):
