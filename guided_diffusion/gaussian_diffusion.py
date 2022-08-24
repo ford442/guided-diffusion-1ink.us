@@ -453,7 +453,6 @@ class GaussianDiffusion:
             t_batch=th.tensor([t] * batch_size,device=device)
             noise=th.randn_like(x_start)
             x_t=self.q_sample(x_start=x_start,t=t_batch,noise=noise)
-            # Calculate VLB term at the current timestep
             with th.no_grad():
                 out=self._vb_terms_bpd(model,x_start=x_start,x_t=x_t,t=t_batch,clip_denoised=clip_denoised,model_kwargs=model_kwargs,)
             vb.append(out["output"])
