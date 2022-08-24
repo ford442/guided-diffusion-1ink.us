@@ -5,27 +5,6 @@ from .gaussian_diffusion import GaussianDiffusion
 
 
 def space_timesteps(num_timesteps,section_counts):
-    """
-    Create a list of timesteps to use from an original diffusion process,
-    given the number of timesteps we want to take from equally-sized portions
-    of the original process.
-
-    For example,if there's 300 timesteps and the section counts are [10,15,20]
-    then the first 100 timesteps are strided to be 10 timesteps,the second 100
-    are strided to be 15 timesteps,and the final 100 are strided to be 20.
-
-    If the stride is a string starting with "ddim",then the fixed striding
-    from the DDIM paper is used,and only one section is allowed.
-
-    :param num_timesteps: the number of diffusion steps in the original
-                          process to divide up.
-    :param section_counts: either a list of numbers,or a string containing
-                           comma-separated numbers,indicating the step count
-                           per section. As a special case,use "ddimN" where N
-                           is a number of steps to use the striding from the
-                           DDIM paper.
-    :return: a set of diffusion steps from the original process to use.
-    """
     if isinstance(section_counts,str):
         if section_counts.startswith("ddim"):
             desired_count=int(section_counts[len("ddim") :])
@@ -59,16 +38,7 @@ def space_timesteps(num_timesteps,section_counts):
         start_idx += size
     return set(all_steps)
 
-
 class SpacedDiffusion(GaussianDiffusion):
-    """
-    A diffusion process which can skip steps in a base diffusion process.
-
-    :param use_timesteps: a collection (sequence or set) of timesteps from the
-                          original diffusion process to retain.
-    :param kwargs: the kwargs to create the base diffusion process.
-    """
-
     def __init__(self,use_timesteps,**kwargs):
         self.use_timesteps=set(use_timesteps)
         self.timestep_map=[]
@@ -109,9 +79,7 @@ class SpacedDiffusion(GaussianDiffusion):
         )
 
     def _scale_timesteps(self,t):
-        # Scaling is done by the wrapped model.
         return t
-
 
 class _WrappedModel:
     def __init__(self,model,timestep_map,rescale_timesteps,original_num_steps):
