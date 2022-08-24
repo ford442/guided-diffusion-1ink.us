@@ -877,6 +877,7 @@ class EncoderUNetModel(nn.Module):
         :return: an [N x K] Tensor of outputs.
         """
         emb=self.time_embed(timestep_embedding(timesteps,self.model_channels))
+
         results=[]
         h=x.type(self.dtype)
         for module in self.input_blocks:
