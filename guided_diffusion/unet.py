@@ -26,6 +26,7 @@ class AttentionPool2d(nn.Module):
 class TimestepBlock(nn.Module):
     @abstractmethod
     def forward(self,x,emb):
+        ##
 class TimestepEmbedSequential(nn.Sequential,TimestepBlock):
     def forward(self,x,emb):
         for layer in self:
