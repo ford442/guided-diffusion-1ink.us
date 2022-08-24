@@ -4,7 +4,6 @@ import numpy as np
 import torch as th
 from .nn import mean_flat
 from .losses import normal_kl,discretized_gaussian_log_likelihood
-
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     if schedule_name == "linear":
         scale=1000 / num_diffusion_timesteps
@@ -299,7 +298,7 @@ class GaussianDiffusion:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=1,high=model.num_classes,size=model_kwargs['y'].shape,generator=th.Generator(device='cuda:0'),device=device)
-            with th.inference_mode():
+            with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
                 yield out
