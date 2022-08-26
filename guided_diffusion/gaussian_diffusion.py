@@ -25,7 +25,7 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     elif schedule_name == "1inkusLite":
         scale=1000.0/num_diffusion_timesteps
         beta_start=scale*0.0009078
-        beta_end=scale*0.02032
+        beta_end=scale*0.01978
         return np.linspace(beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64)
     else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
