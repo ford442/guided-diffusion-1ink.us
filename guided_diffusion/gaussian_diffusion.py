@@ -262,17 +262,17 @@ class GaussianDiffusion:
         alpha_bar_next=_extract_into_tensor(self.alphas_cumprod_next,t,x.shape)
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
-    def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
-        model_kwargs=None,device=None,progress=False,eta=0.0,skip_timesteps=0,init_image=None,
-        randomize_class=False,cond_fn_with_grad=False,):
+    def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,
+        model_kwargs=None,device=torch.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,
+        randomize_class=True,cond_fn_with_grad=False,):
         final=None
         for sample in self.ddim_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,
             cond_fn=cond_fn,model_kwargs=model_kwargs,device=device,progress=progress,eta=eta,skip_timesteps=skip_timesteps,
             init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,):
             final=sample
         return final["sample"]
-    def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
-        device=None,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
+    def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,
+        device=torch.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=True,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
@@ -295,7 +295,7 @@ class GaussianDiffusion:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
-                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
+                out=sample_fn(model,img,t,clip_denoised=False,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
                 yield out
                 img=out["sample"]
     def plms_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,cond_fn_with_grad=False,order=2,old_out=None,):
