@@ -17,6 +17,11 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
         beta_start=scale*0.0001
         beta_end=scale*0.02
         return np.linspace(beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64)
+    elif schedule_name == "1inkusLight":
+        scale=1000.0/num_diffusion_timesteps
+        beta_start=scale*0.0001
+        beta_end=scale*0.01869
+        return np.linspace(beta_start,beta_end,num_diffusion_timesteps,dtype=np.float64)
     else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
 def betas_for_alpha_bar(num_diffusion_timesteps,alpha_bar,max_beta=0.999):
@@ -262,7 +267,7 @@ class GaussianDiffusion:
         alpha_bar_next=_extract_into_tensor(self.alphas_cumprod_next,t,x.shape)
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
-    def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,
+    def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
         model_kwargs=None,device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,
         randomize_class=True,cond_fn_with_grad=False,):
         final=None
@@ -271,7 +276,7 @@ class GaussianDiffusion:
             init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,):
             final=sample
         return final["sample"]
-    def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,
+    def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
         device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=True,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
