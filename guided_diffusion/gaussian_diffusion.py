@@ -94,7 +94,7 @@ class GaussianDiffusion:
         posterior_log_variance_clipped=_extract_into_tensor(self.posterior_log_variance_clipped,t,x_t.shape)
         assert (posterior_mean.shape[0]== posterior_variance.shape[0]== posterior_log_variance_clipped.shape[0]== x_start.shape[0])
         return posterior_mean,posterior_variance,posterior_log_variance_clipped
-    def p_mean_variance(self,model,x,t,clip_denoised=True,denoised_fn=None,model_kwargs=None):
+    def p_mean_variance(self,model,x,t,clip_denoised=False,denoised_fn=None,model_kwargs=None):
         if model_kwargs is None:
             model_kwargs={}
         B,C=x.shape[:2]
@@ -177,7 +177,7 @@ class GaussianDiffusion:
         out["pred_xstart"]=self._predict_xstart_from_eps(x,t,eps)
         out["mean"],_,_=self.q_posterior_mean_variance(x_start=out["pred_xstart"],x_t=x,t=t)
         return out
-    def p_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
+    def p_sample(self,model,x,t,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
         noise=th.randn_like(x)
         nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
@@ -185,7 +185,7 @@ class GaussianDiffusion:
             out["mean"]=self.condition_mean(cond_fn,out,x,t,model_kwargs=model_kwargs)
         sample=out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample,"pred_xstart": out["pred_xstart"]}
-    def p_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
+    def p_sample_with_grad(self,model,x,t,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         with th.enable_grad():
             x=x.detach().requires_grad_()
             out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
@@ -195,7 +195,7 @@ class GaussianDiffusion:
                 out["mean"]=self.condition_mean_with_grad(cond_fn,out,x,t,model_kwargs=model_kwargs)
         sample=out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
         return {"sample": sample,"pred_xstart": out["pred_xstart"].detach()}
-    def p_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
+    def p_sample_loop(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,
         model_kwargs=None,device=None,progress=False,skip_timesteps=0,init_image=None,randomize_class=False,
         cond_fn_with_grad=False,):
         final=None
@@ -204,7 +204,7 @@ class GaussianDiffusion:
             skip_timesteps=skip_timesteps,init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,):
             final=sample
         return final["sample"]
-    def p_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
+    def p_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,
         device=None,progress=False,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
@@ -231,7 +231,7 @@ class GaussianDiffusion:
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
                 yield out
                 img=out["sample"]
-    def ddim_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
+    def ddim_sample(self,model,x,t,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
         if cond_fn is not None:
             out=self.condition_score(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
@@ -246,7 +246,7 @@ class GaussianDiffusion:
         nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
         sample=mean_pred + nonzero_mask * sigma * noise
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"]}
-    def ddim_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
+    def ddim_sample_with_grad(self,model,x,t,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         with th.enable_grad():
             x=x.detach().requires_grad_()
             out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
@@ -264,7 +264,7 @@ class GaussianDiffusion:
         nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
         sample=mean_pred + nonzero_mask * sigma * noise
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"].detach()}
-    def ddim_reverse_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,model_kwargs=None,eta=0.0,):
+    def ddim_reverse_sample(self,model,x,t,clip_denoised=False,denoised_fn=None,model_kwargs=None,eta=0.0,):
         assert eta == 0.0,"Reverse ODE only for deterministic path"
         out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
         eps=(_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x.shape) * x- out["pred_xstart"]
@@ -272,7 +272,7 @@ class GaussianDiffusion:
         alpha_bar_next=_extract_into_tensor(self.alphas_cumprod_next,t,x.shape)
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
-    def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
+    def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,
         model_kwargs=None,device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,
         randomize_class=True,cond_fn_with_grad=False,):
         final=None
@@ -281,7 +281,7 @@ class GaussianDiffusion:
             init_image=init_image,randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,):
             final=sample
         return final["sample"]
-    def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
+    def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,
         device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=True,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
@@ -308,7 +308,7 @@ class GaussianDiffusion:
                 out=sample_fn(model,img,t,clip_denoised=False,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
                 yield out
                 img=out["sample"]
-    def plms_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,cond_fn_with_grad=False,order=2,old_out=None,):
+    def plms_sample(self,model,x,t,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,cond_fn_with_grad=False,order=2,old_out=None,):
         if not int(order) or not 1 <= order <= 4:
             raise ValueError('order is invalid (should be int from 1-4).')
         def get_model_output(x,t):
@@ -356,7 +356,7 @@ class GaussianDiffusion:
         nonzero_mask=(t != 0).float().view(-1,*([1] * (len(x.shape) - 1)))
         sample=mean_pred * nonzero_mask + out["pred_xstart"] * (1 - nonzero_mask)
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"],"old_eps": old_eps}
-    def plms_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,progress=False,
+    def plms_sample_loop(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,progress=False,
         skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,order=2,):
         final=None
         for sample in self.plms_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,
@@ -364,7 +364,7 @@ class GaussianDiffusion:
             randomize_class=randomize_class,cond_fn_with_grad=cond_fn_with_grad,order=order,):
             final=sample
         return final["sample"]
-    def plms_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,
+    def plms_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=False,denoised_fn=None,cond_fn=None,model_kwargs=None,device=None,
         progress=False,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,order=2,):
         if device is None:
             device=next(model.parameters()).device
@@ -393,7 +393,7 @@ class GaussianDiffusion:
                 yield out
                 old_out=out
                 img=out["sample"]
-    def _vb_terms_bpd(self,model,x_start,x_t,t,clip_denoised=True,model_kwargs=None):
+    def _vb_terms_bpd(self,model,x_start,x_t,t,clip_denoised=False,model_kwargs=None):
         true_mean,_,true_log_variance_clipped=self.q_posterior_mean_variance(x_start=x_start,x_t=x_t,t=t)
         out=self.p_mean_variance(model,x_t,t,clip_denoised=clip_denoised,model_kwargs=model_kwargs)
         kl=normal_kl(true_mean,true_log_variance_clipped,out["mean"],out["log_variance"])
@@ -443,7 +443,7 @@ class GaussianDiffusion:
         qt_mean,_,qt_log_variance=self.q_mean_variance(x_start,t)
         kl_prior=normal_kl(mean1=qt_mean,logvar1=qt_log_variance,mean2=0.0,logvar2=0.0)
         return mean_flat(kl_prior) / np.log(2.0)
-    def calc_bpd_loop(self,model,x_start,clip_denoised=True,model_kwargs=None):
+    def calc_bpd_loop(self,model,x_start,clip_denoised=False,model_kwargs=None):
         device=x_start.device
         batch_size=x_start.shape[0]
         vb=[]
