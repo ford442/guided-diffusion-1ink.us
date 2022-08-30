@@ -7,7 +7,7 @@ from .losses import normal_kl,discretized_gaussian_log_likelihood
 from functools import lru_cache as cache;
 from methodtools import lru_cache as class_cache;
 
-@cache(maxzsize=40)
+@cache(maxsize=40)
 def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     if schedule_name == "linear":
         scale=1000 / num_diffusion_timesteps
@@ -34,7 +34,7 @@ def get_named_beta_schedule(schedule_name,num_diffusion_timesteps):
     else:
         raise NotImplementedError(f"unknown beta schedule: {schedule_name}")
         
-@cache(maxzsize=40)
+@cache(maxsize=40)
 def betas_for_alpha_bar(num_diffusion_timesteps,alpha_bar,max_beta=0.999):
     betas=[]
     for i in range(num_diffusion_timesteps):
