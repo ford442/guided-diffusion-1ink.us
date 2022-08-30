@@ -56,6 +56,7 @@ class LossType(enum.Enum):
     RESCALED_MSE=(enum.auto())
     KL=enum.auto()
     RESCALED_KL=enum.auto()
+    @class_cache(maxsize=40)
     def is_vb(self):
         return self == LossType.KL or self == LossType.RESCALED_KL
     
@@ -84,19 +85,19 @@ class GaussianDiffusion:
         self.posterior_log_variance_clipped=np.log(np.append(self.posterior_variance[1],self.posterior_variance[1:]))
         self.posterior_mean_coef1=(betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod))
         self.posterior_mean_coef2=((1.0 - self.alphas_cumprod_prev)* np.sqrt(alphas)/ (1.0 - self.alphas_cumprod))
-        
+    @class_cache(maxsize=40)
     def q_mean_variance(self,x_start,t):
         mean=(_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start)
         variance=_extract_into_tensor(1.0 - self.alphas_cumprod,t,x_start.shape)
         log_variance=_extract_into_tensor(self.log_one_minus_alphas_cumprod,t,x_start.shape)
         return mean,variance,log_variance
-    
+    @class_cache(maxsize=40)
     def q_sample(self,x_start,t,noise=None):
         if noise is None:
             noise=th.randn_like(x_start)
         assert noise.shape == x_start.shape
         return (_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start+ _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod,t,x_start.shape)* noise)
-    
+    @class_cache(maxsize=40)
     def q_posterior_mean_variance(self,x_start,x_t,t):
         assert x_start.shape == x_t.shape
         posterior_mean=(_extract_into_tensor(self.posterior_mean_coef1,t,x_t.shape) * x_start+ _extract_into_tensor(self.posterior_mean_coef2,t,x_t.shape) * x_t)
@@ -148,11 +149,11 @@ class GaussianDiffusion:
             raise NotImplementedError(self.model_mean_type)
         assert (model_mean.shape == model_log_variance.shape == pred_xstart.shape == x.shape)
         return {"mean": model_mean,"variance": model_variance,"log_variance": model_log_variance,"pred_xstart": pred_xstart,}
-    
+    @class_cache(maxsize=40)
     def _predict_xstart_from_eps(self,x_t,t,eps):
         assert x_t.shape == eps.shape
         return (_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x_t.shape) * x_t- _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x_t.shape) * eps)
-    
+    @class_cache(maxsize=40)
     def _predict_xstart_from_xprev(self,x_t,t,xprev):
         assert x_t.shape == xprev.shape
         return (  # (xprev - coef2*x_t) / coef1
@@ -160,10 +161,11 @@ class GaussianDiffusion:
             - _extract_into_tensor(self.posterior_mean_coef2 / self.posterior_mean_coef1,t,x_t.shape)
             * x_t
         )
-    
+    @class_cache(maxsize=40)
     def _predict_eps_from_xstart(self,x_t,t,pred_xstart):
         return (_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x_t.shape) * x_t- pred_xstart) / _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x_t.shape)
-    
+     
+    @class_cache(maxsize=40)
     def _scale_timesteps(self,t):
         if self.rescale_timesteps:
             return t.float() * (1000.0 / self.num_timesteps)
@@ -179,7 +181,6 @@ class GaussianDiffusion:
         new_mean=(p_mean_var["mean"].float() + p_mean_var["variance"] * gradient.float())
         return new_mean
 
-    @class_cache(maxsize=40)
     def condition_score(self,cond_fn,p_mean_var,x,t,model_kwargs=None):
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         eps=self._predict_eps_from_xstart(x,t,p_mean_var["pred_xstart"])
