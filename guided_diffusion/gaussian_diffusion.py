@@ -277,7 +277,7 @@ class GaussianDiffusion:
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
     def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
-        model_kwargs=None,device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,
+        model_kwargs=None,device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,
         randomize_class=True,cond_fn_with_grad=False,):
         final=None
         for sample in self.ddim_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,
@@ -286,7 +286,7 @@ class GaussianDiffusion:
             final=sample
         return final["sample"]
     def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
-        device=th.device('cuda:0'),progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=True,cond_fn_with_grad=False,):
+        device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=True,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
