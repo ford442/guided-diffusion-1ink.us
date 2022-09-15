@@ -56,7 +56,7 @@ class LossType(enum.Enum):
     RESCALED_MSE=(enum.auto())
     KL=enum.auto()
     RESCALED_KL=enum.auto()
-    @class_cache(maxsize=40)
+    #@class_cache(maxsize=40)
     def is_vb(self):
         return self == LossType.KL or self == LossType.RESCALED_KL
     
