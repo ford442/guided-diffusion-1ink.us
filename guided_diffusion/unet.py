@@ -161,11 +161,11 @@ class ResBlock(TimestepBlock):
             h=self.out_layers(h)
         return self.skip_connection(x) + h
 
-        """
+"""
     An attention block that allows spatial positions to attend to each other.
     Originally ported from here,but adapted to the N-d case.
     https://github.com/hojonathanho/diffusion/blob/1e0dceb3b3495bbe19116a5e1b3596cd0706c543/diffusion_tf/models/unet.py#L66.
-    """
+"""
     
 class AttentionBlock(nn.Module):
     def __init__(
@@ -412,17 +412,17 @@ class UNetModel(nn.Module):
         self.middle_block.apply(convert_module_to_quint4)
         self.output_blocks.apply(convert_module_to_quint4)
         
-        def convert_to_uint8(self):
+    def convert_to_uint8(self):
         self.input_blocks.apply(convert_module_to_uint8)
         self.middle_block.apply(convert_module_to_uint8)
         self.output_blocks.apply(convert_module_to_uint8)
         
-            def convert_to_fp16(self):
+    def convert_to_fp16(self):
         self.input_blocks.apply(convert_module_to_f16)
         self.middle_block.apply(convert_module_to_f16)
         self.output_blocks.apply(convert_module_to_f16)
         
-            def convert_to_fp32(self):
+    def convert_to_fp32(self):
         self.input_blocks.apply(convert_module_to_f32)
         self.middle_block.apply(convert_module_to_f32)
         self.output_blocks.apply(convert_module_to_f32)
@@ -451,7 +451,6 @@ class UNetModel(nn.Module):
             h=module(h,emb)
         h=h.type(x.dtype)
         return self.out(h)
-
 
 class SuperResModel(UNetModel):
     def __init__(self,image_size,in_channels,*args,**kwargs):
