@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
-from .fp16_util import convert_module_to_f16,convert_module_to_f32
+from .fp16_util import convert_module_to_quit4,convert_module_to_uint8,convert_module_to_f16,convert_module_to_f32,convert_module_to_f64
 from .nn import (
     checkpoint,
     conv_nd,
