@@ -14,11 +14,7 @@ from .nn import (
     normalization,
     timestep_embedding,
 )
-
-    """
-    Adapted from CLIP: https://github.com/openai/CLIP/blob/main/clip/model.py
-    """
-    
+   
 class AttentionPool2d(nn.Module):
     def __init__(
         self,
@@ -35,7 +31,7 @@ class AttentionPool2d(nn.Module):
         self.attention=QKVAttention(self.num_heads)
     def forward(self,x):
         b,c,*_spatial=x.shape
-        x=x.reshape(b,c,-1)  # NC(HW)
+        x=x.reshape(b,c,-1)
         x=th.cat([x.mean(dim=-1,keepdim=True),x],dim=-1)  # NC(HW+1)
         x=x + self.positional_embedding[None,:,:].to(x.dtype)  # NC(HW+1)
         x=self.qkv_proj(x)
