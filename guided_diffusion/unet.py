@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
-from .fp16_util import convert_module_to_quit4,convert_module_to_uint8,convert_module_to_f16,convert_module_to_f32,convert_module_to_f64
+from .fp16_util import convert_module_to_quint4,convert_module_to_uint8,convert_module_to_f16,convert_module_to_f32,convert_module_to_f64
 from .nn import (
     checkpoint,
     conv_nd,
@@ -284,7 +284,7 @@ class UNetModel(nn.Module):
         self.conv_resample=conv_resample
         self.num_classes=num_classes
         self.use_checkpoint=use_checkpoint
-        self.dtype=th.float16
+        self.dtype=th.float32
         self.num_heads=num_heads
         self.num_head_channels=num_head_channels
         self.num_heads_upsample=num_heads_upsample
@@ -499,7 +499,7 @@ class EncoderUNetModel(nn.Module):
         self.channel_mult=channel_mult
         self.conv_resample=conv_resample
         self.use_checkpoint=use_checkpoint
-        self.dtype=th.float16
+        self.dtype=th.float32
         self.num_heads=num_heads
         self.num_head_channels=num_head_channels
         self.num_heads_upsample=num_heads_upsample
