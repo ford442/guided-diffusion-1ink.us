@@ -208,7 +208,7 @@ class GaussianDiffusion:
         return {"sample": sample,"pred_xstart": out["pred_xstart"]}
     def p_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         with th.enable_grad():
-            x=x.detach().requires_grad_()
+            x=x.detach() #.requires_grad_()
             out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
             noise=th.randn_like(x)
             nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
@@ -269,7 +269,7 @@ class GaussianDiffusion:
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"]}
     def ddim_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         with th.enable_grad():
-            x=x.detach().requires_grad_()
+            x=x.detach() #.requires_grad_()
             out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
             if cond_fn is not None:
                 out=self.condition_score_with_grad(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
@@ -334,7 +334,7 @@ class GaussianDiffusion:
             raise ValueError('order is invalid (should be int from 1-4).')
         def get_model_output(x,t):
             with th.set_grad_enabled(cond_fn_with_grad and cond_fn is not None):
-                x=x.detach().requires_grad_() if cond_fn_with_grad else x
+              #  x=x.detach().requires_grad_() if cond_fn_with_grad else x
                 out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
                 if cond_fn is not None:
                     if cond_fn_with_grad:
