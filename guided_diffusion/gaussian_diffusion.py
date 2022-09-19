@@ -408,7 +408,7 @@ class GaussianDiffusion:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
-            with th.inference_mode():
+            with th.no_grad():
                 out=self.plms_sample(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,
                     cond_fn_with_grad=cond_fn_with_grad,order=order,old_out=old_out,)
                 yield out
