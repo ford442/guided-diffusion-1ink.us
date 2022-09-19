@@ -208,7 +208,7 @@ class GaussianDiffusion:
         return {"sample": sample,"pred_xstart": out["pred_xstart"]}
     def p_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         with th.enable_grad():
-            x=x.detach() #.requires_grad_()
+            x=x.detach().requires_grad_()
             out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
             noise=th.randn_like(x)
             nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
