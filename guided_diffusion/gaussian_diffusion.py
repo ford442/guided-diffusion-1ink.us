@@ -247,7 +247,7 @@ class GaussianDiffusion:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
-            with th.no_grad():
+            with th.inference_mode():
                 sample_fn=self.p_sample_with_grad if cond_fn_with_grad else self.p_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
                 yield out
@@ -269,7 +269,7 @@ class GaussianDiffusion:
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"]}
     def ddim_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         with th.enable_grad():
-            x=x.detach() #.requires_grad_()
+            x=x.detach().requires_grad_()
             out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
             if cond_fn is not None:
                 out=self.condition_score_with_grad(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
@@ -324,7 +324,7 @@ class GaussianDiffusion:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
-            with th.no_grad():
+            with th.inference_mode():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,)
                 yield out
@@ -334,7 +334,7 @@ class GaussianDiffusion:
             raise ValueError('order is invalid (should be int from 1-4).')
         def get_model_output(x,t):
             with th.set_grad_enabled(cond_fn_with_grad and cond_fn is not None):
-              #  x=x.detach().requires_grad_() if cond_fn_with_grad else x
+                x=x.detach().requires_grad_() if cond_fn_with_grad else x
                 out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
                 if cond_fn is not None:
                     if cond_fn_with_grad:
@@ -408,7 +408,7 @@ class GaussianDiffusion:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
-            with th.no_grad():
+            with th.inference_mode():
                 out=self.plms_sample(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,
                     cond_fn_with_grad=cond_fn_with_grad,order=order,old_out=old_out,)
                 yield out
@@ -475,7 +475,7 @@ class GaussianDiffusion:
             noise=th.randn_like(x_start)
             x_t=self.q_sample(x_start=x_start,t=t_batch,noise=noise)
             # Calculate VLB term at the current timestep
-            with th.no_grad():
+            with th.inference_mode():
                 out=self._vb_terms_bpd(model,x_start=x_start,x_t=x_t,t=t_batch,clip_denoised=clip_denoised,model_kwargs=model_kwargs,)
             vb.append(out["output"])
             xstart_mse.append(mean_flat((out["pred_xstart"] - x_start) ** 2))
