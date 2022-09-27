@@ -110,7 +110,7 @@ class GaussianDiffusion:
         return mean,variance,log_variance
     def q_sample(self,x_start,t,noise=None):
         if noise is None:
-            noise=th.randn_like(x_start)
+            noise=th.randn_like(x_start,device=device)
         assert noise.shape == x_start.shape
         return (_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start+ _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod,t,x_start.shape)* noise)
     def q_posterior_mean_variance(self,x_start,x_t,t):
@@ -205,7 +205,7 @@ class GaussianDiffusion:
         return out
     def p_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
-        noise=th.randn_like(x)
+        noise=th.randn_like(x,device=device)
         nonzero_mask=((t!=0).float().view(-1,*([1]*(len(x.shape)-1))))
         if cond_fn is not None:
             out["mean"]=self.condition_mean(cond_fn,out,x,t,model_kwargs=model_kwargs)
@@ -215,7 +215,7 @@ class GaussianDiffusion:
         with th.enable_grad():
             x=x.detach().requires_grad_()
             out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
-            noise=th.randn_like(x)
+            noise=th.randn_like(x,device=device)
             nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
             if cond_fn is not None:
                 out["mean"]=self.condition_mean_with_grad(cond_fn,out,x,t,model_kwargs=model_kwargs)
@@ -240,7 +240,7 @@ class GaussianDiffusion:
         else:
             img=th.randn(*shape,device=device)
         if skip_timesteps and init_image is None:
-            init_image=th.zeros_like(img)
+            init_image=th.zeros_like(img,device=device)
         indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
@@ -267,7 +267,7 @@ class GaussianDiffusion:
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
         sigma=(eta* th.sqrt((1 - alpha_bar_prev) / (1 - alpha_bar))* th.sqrt(1 - alpha_bar / alpha_bar_prev))
-        noise=th.randn_like(x)
+        noise=th.randn_like(x,device=device)
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_prev)+ th.sqrt(1 - alpha_bar_prev - sigma ** 2) * eps)
         nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
         sample=mean_pred + nonzero_mask * sigma * noise
@@ -285,7 +285,7 @@ class GaussianDiffusion:
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
         sigma=(eta* th.sqrt((1 - alpha_bar_prev) / (1 - alpha_bar))* th.sqrt(1 - alpha_bar / alpha_bar_prev))
-        noise=th.randn_like(x)
+        noise=th.randn_like(x,device=device)
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_prev)+ th.sqrt(1 - alpha_bar_prev - sigma ** 2) * eps)
         nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
         sample=mean_pred + nonzero_mask * sigma * noise
@@ -317,7 +317,7 @@ class GaussianDiffusion:
         else:
             img=th.randn(*shape,device=device)
         if skip_timesteps and init_image is None:
-            init_image=th.zeros_like(img)
+            init_image=th.zeros_like(img,device=device)
         indices=list(range(self.num_timesteps-skip_timesteps))[::-1]
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long)*indices[0]
@@ -332,7 +332,7 @@ class GaussianDiffusion:
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 
-                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,).to(torch.device("cuda:0");
+                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,).to(th.device("cuda:0");
                                                                                                 # my change to cuda 
                                                                                                                                                      
                 yield out
@@ -403,7 +403,7 @@ class GaussianDiffusion:
         else:
             img=th.randn(*shape,device=device)
         if skip_timesteps and init_image is None:
-            init_image=th.zeros_like(img)
+            init_image=th.zeros_like(img,device=device)
         indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         if init_image is not None:
             my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
@@ -436,7 +436,7 @@ class GaussianDiffusion:
         if model_kwargs is None:
             model_kwargs={}
         if noise is None:
-            noise=th.randn_like(x_start)
+            noise=th.randn_like(x_start,device=device)
         x_t=self.q_sample(x_start,t,noise=noise)
         terms={}
         if self.loss_type == LossType.KL or self.loss_type == LossType.RESCALED_KL:
@@ -480,7 +480,7 @@ class GaussianDiffusion:
         mse=[]
         for t in list(range(self.num_timesteps))[::-1]:
             t_batch=th.tensor([t] * batch_size,device=device)
-            noise=th.randn_like(x_start)
+            noise=th.randn_like(x_start,device=device)
             x_t=self.q_sample(x_start=x_start,t=t_batch,noise=noise)
             # Calculate VLB term at the current timestep
             with th.inference_mode():
@@ -496,7 +496,7 @@ class GaussianDiffusion:
         total_bpd=vb.sum(dim=1) + prior_bpd
         return {"total_bpd": total_bpd,"prior_bpd": prior_bpd,"vb": vb,"xstart_mse": xstart_mse,"mse": mse,}
 def _extract_into_tensor(arr,timesteps,broadcast_shape):
-    res=th.from_numpy(arr).to(device=timesteps.device)[timesteps].float()
+    res=th.from_numpy(arr).to(th.device("cuda:0"))[timesteps].float()
     while len(res.shape) < len(broadcast_shape):
         res=res[...,None]
     return res.expand(broadcast_shape)
