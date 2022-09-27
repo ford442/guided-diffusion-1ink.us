@@ -7,7 +7,7 @@ import torch.nn as nn
 
 class SiLU(nn.Module):
     def forward(self,x):
-        return x * th.sigmoid(x)
+        return x*th.sigmoid(x)
 
 class GroupNorm32(nn.GroupNorm):
     def forward(self,x):
@@ -36,45 +36,28 @@ def avg_pool_nd(dims,*args,**kwargs):
 
 def update_ema(target_params,source_params,rate=0.99):
     for targ,src in zip(target_params,source_params):
-        targ.detach().mul_(rate).add_(src,alpha=1 - rate)
+        targ.detach().mul_(rate).add_(src,alpha=1-rate)
 
-    """
-    Zero out the parameters of a module and return it.
-    """
 def zero_module(module):
     for p in module.parameters():
         p.detach().zero_()
     return module
 
-    """
-    Scale the parameters of a module and return it.
-    """
 def scale_module(module,scale):
     for p in module.parameters():
         p.detach().mul_(scale)
     return module
 
-    """
-    Take the mean over all non-batch dimensions.
-    """
 def mean_flat(tensor):
     return tensor.mean(dim=list(range(1,len(tensor.shape))))
 
-    """
-    Make a standard normalization layer.
-    :param channels: number of input channels.
-    :return: an nn.Module for normalization.
-    """
 def normalization(channels):
     return GroupNorm32(32,channels)
 
-
 def timestep_embedding(timesteps,dim,max_period=10000):
-    half=dim // 2
-    freqs=th.exp(
-        -math.log(max_period) * th.arange(start=0,end=half,dtype=th.float32) / half
-    ).to(device=timesteps.device)
-    args=timesteps[:,None].float() * freqs[None]
+    half=dim//2
+    freqs=th.exp(-math.log(max_period)*th.arange(start=0,end=half,dtype=th.float32)/half).to(device=torch.device("cuda:0")))
+    args=timesteps[:,None].float()*freqs[None]
     embedding=th.cat([th.cos(args),th.sin(args)],dim=-1)
     if dim % 2:
         embedding=th.cat([embedding,th.zeros_like(embedding[:,:1])],dim=-1)
@@ -117,12 +100,10 @@ class CheckpointFunction(th.autograd.Function):
         with th.enable_grad():
             for i in input_indices:
                 if i < ctx.input_length:
-                    # Not sure why the OAI code does this little
-                    # dance. It might not be necessary.
                     args[i]=args[i].detach().requires_grad_()
                     args[i]=args[i].view_as(args[i])
             output_tensors=ctx.run_function(*args[:ctx.input_length])
-        if isinstance(output_tensors,th.Tensor):
+        if isinstance(output_tensors,th.tensor):
             output_tensors=[output_tensors]
         out_and_grads=[(o,g) for (o,g) in zip(output_tensors,output_grads) if o.requires_grad]
         if not out_and_grads:
