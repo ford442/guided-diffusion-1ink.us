@@ -251,7 +251,7 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
             with th.no_grad():
                 sample_fn=self.p_sample_with_grad if cond_fn_with_grad else self.p_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
@@ -299,7 +299,7 @@ class GaussianDiffusion:
         mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
     def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
-        model_kwargs=None,device=None,progress=False,eta=0.0,skip_timesteps=0,init_image=None,
+        model_kwargs=None,device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,
         randomize_class=False,cond_fn_with_grad=False,):
         final=None
         for sample in self.ddim_sample_loop_progressive(model,shape,noise=noise,clip_denoised=clip_denoised,denoised_fn=denoised_fn,
@@ -308,7 +308,7 @@ class GaussianDiffusion:
             final=sample
         return final["sample"]
     def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
-        device=None,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
+        device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
         if device is None:
             device=next(model.parameters()).device
         assert isinstance(shape,(tuple,list))
@@ -328,13 +328,10 @@ class GaussianDiffusion:
         for i in indices:
             t=th.tensor([i] * shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
-                
-                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,).to(th.device("cuda:0"));
-                                                                                                # my change to cuda 
-                                                                                                                                                     
+                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,);
                 yield out
                 img=out["sample"]
     def plms_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,cond_fn_with_grad=False,order=2,old_out=None,):
@@ -468,7 +465,7 @@ class GaussianDiffusion:
         return terms
     def _prior_bpd(self,x_start):
         batch_size=x_start.shape[0]
-        t=th.tensor([self.num_timesteps - 1] * batch_size,device=x_start.device)
+        t=th.tensor([self.num_timesteps - 1] * batch_size,device=device)
         qt_mean,_,qt_log_variance=self.q_mean_variance(x_start,t)
         kl_prior=normal_kl(mean1=qt_mean,logvar1=qt_log_variance,mean2=0.0,logvar2=0.0)
         return mean_flat(kl_prior) / np.log(2.0)
