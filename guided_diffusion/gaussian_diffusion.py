@@ -185,12 +185,12 @@ class GaussianDiffusion:
         return new_mean
     def condition_mean_with_grad(self,cond_fn,p_mean_var,x,t,model_kwargs=None):
         gradient=cond_fn(x,t,p_mean_var,**model_kwargs)
-        new_mean=(p_mean_var["mean"].float() + p_mean_var["variance"] * gradient.float())
+        new_mean=(p_mean_var["mean"].float() + p_mean_var["variance"]*gradient.float())
         return new_mean
     def condition_score(self,cond_fn,p_mean_var,x,t,model_kwargs=None):
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         eps=self._predict_eps_from_xstart(x,t,p_mean_var["pred_xstart"])
-        eps=eps - (1 - alpha_bar).sqrt() * cond_fn(x,self._scale_timesteps(t),**model_kwargs)
+        eps=eps-(1-alpha_bar).sqrt()*cond_fn(x,self._scale_timesteps(t),**model_kwargs)
         out=p_mean_var.copy()
         out["pred_xstart"]=self._predict_xstart_from_eps(x,t,eps)
         out["mean"],_,_=self.q_posterior_mean_variance(x_start=out["pred_xstart"],x_t=x,t=t)
@@ -198,7 +198,7 @@ class GaussianDiffusion:
     def condition_score_with_grad(self,cond_fn,p_mean_var,x,t,model_kwargs=None):
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         eps=self._predict_eps_from_xstart(x,t,p_mean_var["pred_xstart"])
-        eps=eps - (1 - alpha_bar).sqrt() * cond_fn(x,t,p_mean_var,**model_kwargs)
+        eps=eps-(1-alpha_bar).sqrt()*cond_fn(x,t,p_mean_var,**model_kwargs)
         out=p_mean_var.copy()
         out["pred_xstart"]=self._predict_xstart_from_eps(x,t,eps)
         out["mean"],_,_=self.q_posterior_mean_variance(x_start=out["pred_xstart"],x_t=x,t=t)
@@ -206,7 +206,7 @@ class GaussianDiffusion:
     def p_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
         noise=th.randn_like(x)
-        nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
+        nonzero_mask=((t!=0).float().view(-1,*([1]*(len(x.shape)-1))))
         if cond_fn is not None:
             out["mean"]=self.condition_mean(cond_fn,out,x,t,model_kwargs=model_kwargs)
         sample=out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
@@ -318,9 +318,9 @@ class GaussianDiffusion:
             img=th.randn(*shape,device=device)
         if skip_timesteps and init_image is None:
             init_image=th.zeros_like(img)
-        indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
+        indices=list(range(self.num_timesteps-skip_timesteps))[::-1]
         if init_image is not None:
-            my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
+            my_t=th.ones([shape[0]],device=device,dtype=th.long)*indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
             from tqdm.auto import tqdm           
