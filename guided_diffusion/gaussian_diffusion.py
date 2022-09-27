@@ -332,7 +332,7 @@ class GaussianDiffusion:
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 
-                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,).to(th.device("cuda:0");
+                out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,).to(th.device("cuda:0"));
                                                                                                 # my change to cuda 
                                                                                                                                                      
                 yield out
