@@ -260,21 +260,21 @@ class GaussianDiffusion:
     def ddim_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
         if cond_fn is not None:
-            out=self.condition_score(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
+            out=self.condition_score(cond_fn,out_orig,x,t,model_kwargs=model_kwargs).to(th.device("cuda:0"))  #   my to cuda
         else:
             out=out_orig
         eps=self._predict_eps_from_xstart(x,t,out["pred_xstart"])
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
-        sigma=(eta* th.sqrt((1 - alpha_bar_prev) / (1 - alpha_bar))* th.sqrt(1 - alpha_bar / alpha_bar_prev))
+        sigma=(eta* th.sqrt((1-alpha_bar_prev)/(1-alpha_bar))*th.sqrt(1-alpha_bar/alpha_bar_prev))
         noise=th.randn_like(x,device=device)
-        mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_prev)+ th.sqrt(1 - alpha_bar_prev - sigma ** 2) * eps)
-        nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
-        sample=mean_pred + nonzero_mask * sigma * noise
+        mean_pred=(out["pred_xstart"]*th.sqrt(alpha_bar_prev)+th.sqrt(1-alpha_bar_prev-sigma**2)*eps)
+        nonzero_mask=((t != 0).float().view(-1,*([1]*(len(x.shape)-1))))
+        sample=mean_pred+nonzero_mask*sigma*noise
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"]}
     def ddim_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         with th.enable_grad():
-            x=x.detach().requires_grad_()
+            x=x.detach().requires_grad_().to(th.device("cuda:0"))  #   my to cuda
             out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
             if cond_fn is not None:
                 out=self.condition_score_with_grad(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
@@ -293,10 +293,9 @@ class GaussianDiffusion:
     def ddim_reverse_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,model_kwargs=None,eta=0.0,):
         assert eta == 0.0,"Reverse ODE only for deterministic path"
         out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
-        eps=(_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x.shape) * x- out["pred_xstart"]
-        ) / _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x.shape)
+        eps=(_extract_into_tensor(self.sqrt_recip_alphas_cumprod,t,x.shape)*x-out["pred_xstart"])/_extract_into_tensor(self.sqrt_recipm1_alphas_cumprod,t,x.shape)
         alpha_bar_next=_extract_into_tensor(self.alphas_cumprod_next,t,x.shape)
-        mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_next)+ th.sqrt(1 - alpha_bar_next) * eps)
+        mean_pred=(out["pred_xstart"]*th.sqrt(alpha_bar_next)+ th.sqrt(1-alpha_bar_next)*eps)
         return {"sample": mean_pred,"pred_xstart": out["pred_xstart"]}
     def ddim_sample_loop(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,
         model_kwargs=None,device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,
@@ -310,7 +309,7 @@ class GaussianDiffusion:
     def ddim_sample_loop_progressive(self,model,shape,noise=None,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,
         device=device,progress=False,eta=0.0,skip_timesteps=0,init_image=None,randomize_class=False,cond_fn_with_grad=False,):
         if device is None:
-            device=next(model.parameters()).device
+            device=th.device("cuda:0")
         assert isinstance(shape,(tuple,list))
         if noise is not None:
             img=noise
@@ -326,7 +325,7 @@ class GaussianDiffusion:
             from tqdm.auto import tqdm           
             indices=tqdm(indices)
         for i in indices:
-            t=th.tensor([i] * shape[0],device=device)
+            t=th.tensor([i]*shape[0],device=device)
             if randomize_class and 'y' in model_kwargs:
                 model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
             with th.no_grad():
@@ -493,7 +492,7 @@ class GaussianDiffusion:
         total_bpd=vb.sum(dim=1) + prior_bpd
         return {"total_bpd": total_bpd,"prior_bpd": prior_bpd,"vb": vb,"xstart_mse": xstart_mse,"mse": mse,}
 def _extract_into_tensor(arr,timesteps,broadcast_shape):
-    res=th.from_numpy(arr).to(th.device("cuda:0"))[timesteps].float()
-    while len(res.shape) < len(broadcast_shape):
+    res=th.from_numpy(arr)[timesteps].float().to(th.device("cuda:0"))
+    while len(res.shape)<len(broadcast_shape):
         res=res[...,None]
-    return res.expand(broadcast_shape)
+    return res.expand(broadcast_shape).to(th.device("cuda:0"))
