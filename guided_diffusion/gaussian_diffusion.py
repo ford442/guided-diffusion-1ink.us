@@ -260,7 +260,7 @@ class GaussianDiffusion:
     def ddim_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
         if cond_fn is not None:
-            out=self.condition_score(cond_fn,out_orig,x,t,model_kwargs=model_kwargs).to(th.device("cuda:0"))  #   my to cuda
+            out=self.condition_score(cond_fn,out_orig,x,t,model_kwargs=model_kwargs) #.to(th.device("cuda:0"))  #   my to cuda
         else:
             out=out_orig
         eps=self._predict_eps_from_xstart(x,t,out["pred_xstart"])
@@ -274,7 +274,7 @@ class GaussianDiffusion:
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"]}
     def ddim_sample_with_grad(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,eta=0.0,):
         with th.enable_grad():
-            x=x.detach().requires_grad_().to(th.device("cuda:0"))  #   my to cuda
+            x=x.detach().requires_grad_() #.to(th.device("cuda:0"))  #   my to cuda
             out_orig=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
             if cond_fn is not None:
                 out=self.condition_score_with_grad(cond_fn,out_orig,x,t,model_kwargs=model_kwargs)
@@ -492,7 +492,7 @@ class GaussianDiffusion:
         total_bpd=vb.sum(dim=1) + prior_bpd
         return {"total_bpd": total_bpd,"prior_bpd": prior_bpd,"vb": vb,"xstart_mse": xstart_mse,"mse": mse,}
 def _extract_into_tensor(arr,timesteps,broadcast_shape):
-    res=th.from_numpy(arr)[timesteps].float().to(th.device("cuda:0"))
+    res=th.from_numpy(arr)[timesteps].float() #.to(th.device("cuda:0"))
     while len(res.shape)<len(broadcast_shape):
         res=res[...,None]
-    return res.expand(broadcast_shape).to(th.device("cuda:0"))
+    return res.expand(broadcast_shape) #.to(th.device("cuda:0"))
