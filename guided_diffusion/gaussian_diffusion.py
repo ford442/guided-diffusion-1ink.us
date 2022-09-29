@@ -262,7 +262,7 @@ class GaussianDiffusion:
         if cond_fn is not None:
             out=self.condition_score(cond_fn,out_orig,x,t,model_kwargs=model_kwargs).to(th.device("cuda:0"))  #   my to cuda
         else:
-            out=out_orig.to(th.device("cuda:0"))  #   my to cuda
+            out=out_orig
         eps=self._predict_eps_from_xstart(x,t,out["pred_xstart"])
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
