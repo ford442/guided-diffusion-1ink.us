@@ -492,7 +492,7 @@ class GaussianDiffusion:
         total_bpd=vb.sum(dim=1) + prior_bpd
         return {"total_bpd": total_bpd,"prior_bpd": prior_bpd,"vb": vb,"xstart_mse": xstart_mse,"mse": mse,}
 def _extract_into_tensor(arr,timesteps,broadcast_shape):
-    res=th.from_numpy(arr)[timesteps].float().detach().to(th.device("cuda:0"))
+    res=th.from_numpy(arr)[timesteps].float().to(th.device("cuda:0"))
     while len(res.shape)<len(broadcast_shape):
         res=res[...,None]
     return res.expand(broadcast_shape) #.to(th.device("cuda:0"))
