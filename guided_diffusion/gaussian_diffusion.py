@@ -110,7 +110,7 @@ class GaussianDiffusion:
         return mean,variance,log_variance
     def q_sample(self,x_start,t,noise=None):
         if noise is None:
-            noise=th.randn_like(x_start,device=device)
+            noise=th.randn_like(x_start,device=device,requires_grad=False)
         assert noise.shape == x_start.shape
         return (_extract_into_tensor(self.sqrt_alphas_cumprod,t,x_start.shape) * x_start+ _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod,t,x_start.shape)* noise)
     def q_posterior_mean_variance(self,x_start,x_t,t):
@@ -205,7 +205,7 @@ class GaussianDiffusion:
         return out
     def p_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,cond_fn=None,model_kwargs=None,):
         out=self.p_mean_variance(model,x,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,model_kwargs=model_kwargs,)
-        noise=th.randn_like(x,device=device)
+        noise=th.randn_like(x,device=device,requires_grad=False)
         nonzero_mask=((t!=0).float().view(-1,*([1]*(len(x.shape)-1))))
         if cond_fn is not None:
             out["mean"]=self.condition_mean(cond_fn,out,x,t,model_kwargs=model_kwargs)
@@ -238,20 +238,20 @@ class GaussianDiffusion:
         if noise is not None:
             img=noise
         else:
-            img=th.randn(*shape,device=device)
+            img=th.randn(*shape,device=device,requires_grad=False)
         if skip_timesteps and init_image is None:
             init_image=th.zeros_like(img,device=device)
         indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         if init_image is not None:
-            my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
+            my_t=th.ones([shape[0]],device=device,dtype=th.long,requires_grad=False) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
             from tqdm.auto import tqdm
             indices=tqdm(indices)
         for i in indices:
-            t=th.tensor([i] * shape[0],device=device)
+            t=th.tensor([i] * shape[0],device=device,requires_grad=False)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
+                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device,requires_grad=False)
             with th.no_grad():
                 sample_fn=self.p_sample_with_grad if cond_fn_with_grad else self.p_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,)
@@ -266,7 +266,7 @@ class GaussianDiffusion:
         eps=self._predict_eps_from_xstart(x,t,out["pred_xstart"])
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
-        sigma=(eta* th.sqrt((1-alpha_bar_prev)/(1-alpha_bar))*th.sqrt(1-alpha_bar/alpha_bar_prev))
+        sigma=(eta*th.sqrt((1-alpha_bar_prev)/(1-alpha_bar))*th.sqrt(1-alpha_bar/alpha_bar_prev))
         noise=th.randn_like(x,device=device)
         mean_pred=(out["pred_xstart"]*th.sqrt(alpha_bar_prev)+th.sqrt(1-alpha_bar_prev-sigma**2)*eps)
         nonzero_mask=((t != 0).float().view(-1,*([1]*(len(x.shape)-1))))
@@ -284,10 +284,10 @@ class GaussianDiffusion:
         eps=self._predict_eps_from_xstart(x,t,out["pred_xstart"])
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
-        sigma=(eta* th.sqrt((1 - alpha_bar_prev) / (1 - alpha_bar))* th.sqrt(1 - alpha_bar / alpha_bar_prev))
-        noise=th.randn_like(x,device=device)
-        mean_pred=(out["pred_xstart"] * th.sqrt(alpha_bar_prev)+ th.sqrt(1 - alpha_bar_prev - sigma ** 2) * eps)
-        nonzero_mask=((t != 0).float().view(-1,*([1] * (len(x.shape) - 1))))
+        sigma=(eta* th.sqrt((1-alpha_bar_prev)/(1-alpha_bar))* th.sqrt(1-alpha_bar/alpha_bar_prev))
+        noise=th.randn_like(x,device=device,requires_grad=False)
+        mean_pred=(out["pred_xstart"]*th.sqrt(alpha_bar_prev)+ th.sqrt(1-alpha_bar_prev-sigma**2)*eps)
+        nonzero_mask=((t != 0).float().view(-1,*([1]*(len(x.shape)-1))))
         sample=mean_pred + nonzero_mask * sigma * noise
         return {"sample": sample,"pred_xstart": out_orig["pred_xstart"].detach()}
     def ddim_reverse_sample(self,model,x,t,clip_denoised=True,denoised_fn=None,model_kwargs=None,eta=0.0,):
@@ -316,18 +316,18 @@ class GaussianDiffusion:
         else:
             img=th.randn(*shape,device=device)
         if skip_timesteps and init_image is None:
-            init_image=th.zeros_like(img,device=device)
+            init_image=th.zeros_like(img,device=device,requires_grad=False)
         indices=list(range(self.num_timesteps-skip_timesteps))[::-1]
         if init_image is not None:
-            my_t=th.ones([shape[0]],device=device,dtype=th.long)*indices[0]
+            my_t=th.ones([shape[0]],device=device,dtype=th.long,requires_grad=False)*indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
             from tqdm.auto import tqdm           
             indices=tqdm(indices)
         for i in indices:
-            t=th.tensor([i]*shape[0],device=device)
+            t=th.tensor([i]*shape[0],device=device,requires_grad=False)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device)
+                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=device,requires_grad=False)
             with th.no_grad():
                 sample_fn=self.ddim_sample_with_grad if cond_fn_with_grad else self.ddim_sample
                 out=sample_fn(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,eta=eta,);
@@ -353,13 +353,13 @@ class GaussianDiffusion:
         alpha_bar=_extract_into_tensor(self.alphas_cumprod,t,x.shape)
         alpha_bar_prev=_extract_into_tensor(self.alphas_cumprod_prev,t,x.shape)
         eps,out,out_orig=get_model_output(x,t)
-        if order > 1 and old_out is None:
+        if order>1 and old_out is None:
             old_eps=[eps]
-            mean_pred=out["pred_xstart"] * th.sqrt(alpha_bar_prev) + th.sqrt(1 - alpha_bar_prev) * eps
-            eps_2,_,_=get_model_output(mean_pred,t - 1)
-            eps_prime=(eps + eps_2) / 2
+            mean_pred=out["pred_xstart"]*th.sqrt(alpha_bar_prev)+th.sqrt(1-alpha_bar_prev)*eps
+            eps_2,_,_=get_model_output(mean_pred,t-1)
+            eps_prime=(eps+eps_2)/2
             pred_prime=self._predict_xstart_from_eps(x,t,eps_prime)
-            mean_pred=pred_prime * th.sqrt(alpha_bar_prev) + th.sqrt(1 - alpha_bar_prev) * eps_prime
+            mean_pred=pred_prime*th.sqrt(alpha_bar_prev)+th.sqrt(1-alpha_bar_prev)*eps_prime
         else:
             old_eps=old_out["old_eps"]
             old_eps.append(eps)
@@ -397,21 +397,21 @@ class GaussianDiffusion:
         if noise is not None:
             img=noise
         else:
-            img=th.randn(*shape,device=device)
+            img=th.randn(*shape,device=device,requires_grad=False)
         if skip_timesteps and init_image is None:
-            init_image=th.zeros_like(img,device=device)
+            init_image=th.zeros_like(img,device=device,requires_grad=False)
         indices=list(range(self.num_timesteps - skip_timesteps))[::-1]
         if init_image is not None:
-            my_t=th.ones([shape[0]],device=device,dtype=th.long) * indices[0]
+            my_t=th.ones([shape[0]],device=device,dtype=th.long,requires_grad=False) * indices[0]
             img=self.q_sample(init_image,my_t,img)
         if progress:
             from tqdm.auto import tqdm
             indices=tqdm(indices)
         old_out=None
         for i in indices:
-            t=th.tensor([i] * shape[0],device=device)
+            t=th.tensor([i] * shape[0],device=device,requires_grad=False)
             if randomize_class and 'y' in model_kwargs:
-                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device)
+                model_kwargs['y']=th.randint(low=0,high=model.num_classes,size=model_kwargs['y'].shape,device=model_kwargs['y'].device,requires_grad=False)
             with th.no_grad():
                 out=self.plms_sample(model,img,t,clip_denoised=clip_denoised,denoised_fn=denoised_fn,cond_fn=cond_fn,model_kwargs=model_kwargs,
                     cond_fn_with_grad=cond_fn_with_grad,order=order,old_out=old_out,)
@@ -432,7 +432,7 @@ class GaussianDiffusion:
         if model_kwargs is None:
             model_kwargs={}
         if noise is None:
-            noise=th.randn_like(x_start,device=device)
+            noise=th.randn_like(x_start,device=device,requires_grad=False)
         x_t=self.q_sample(x_start,t,noise=noise)
         terms={}
         if self.loss_type == LossType.KL or self.loss_type == LossType.RESCALED_KL:
@@ -464,7 +464,7 @@ class GaussianDiffusion:
         return terms
     def _prior_bpd(self,x_start):
         batch_size=x_start.shape[0]
-        t=th.tensor([self.num_timesteps - 1] * batch_size,device=device)
+        t=th.tensor([self.num_timesteps - 1] * batch_size,device=device,requires_grad=False)
         qt_mean,_,qt_log_variance=self.q_mean_variance(x_start,t)
         kl_prior=normal_kl(mean1=qt_mean,logvar1=qt_log_variance,mean2=0.0,logvar2=0.0)
         return mean_flat(kl_prior) / np.log(2.0)
@@ -475,8 +475,8 @@ class GaussianDiffusion:
         xstart_mse=[]
         mse=[]
         for t in list(range(self.num_timesteps))[::-1]:
-            t_batch=th.tensor([t] * batch_size,device=device)
-            noise=th.randn_like(x_start,device=device)
+            t_batch=th.tensor([t] * batch_size,device=device,requires_grad=False)
+            noise=th.randn_like(x_start,device=device,requires_grad=False)
             x_t=self.q_sample(x_start=x_start,t=t_batch,noise=noise)
             # Calculate VLB term at the current timestep
             with th.inference_mode():
