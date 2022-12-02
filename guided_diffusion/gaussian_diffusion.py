@@ -495,4 +495,4 @@ def _extract_into_tensor(arr,timesteps,broadcast_shape):
     res=th.from_numpy(arr)[timesteps].float().to(th.device("cuda:0"))
     while len(res.shape)<len(broadcast_shape):
         res=res[...,None]
-    return res.expand(broadcast_shape) #.to(th.device("cuda:0"))
+    return res.expand(broadcast_shape).to(th.device("cuda:0"))
